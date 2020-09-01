@@ -3,10 +3,7 @@ version: '3'
 services:
   # Game server
   server:
-    build:
-      context: ./docker/server
-      dockerfile: Dockerfile
-    image: tlsf_gs:v0.1
+    image: ${TLBB_SERVER_IMAGE_NAME}:v0.1
     volumes:
       - "${SERVER_DIR}/server:/home"
     ports:
@@ -19,9 +16,7 @@ services:
       - webdb
   # Game database
   tlbbdb:
-    build:
-      context: ./docker/tlbbdb
-    image: tlsf_tlbbdb:v0.1
+    image: ${TLBBDB_IMAGE_NAME}:v0.1
     volumes:
       - "${SERVER_DIR}/tlbbdb/mysql:/var/lib/mysql"
     ports:
@@ -33,9 +28,7 @@ services:
     restart: always
   # Web database
   webdb:
-    build:
-      context: ./docker/webdb
-    image: tlsf_webdb:v0.1
+    image: ${WEBDB_IMAGE_NAME}:v0.1
     volumes:
     - "${SERVER_DIR}/webdb/mysql:/var/lib/mysql"
     ports:
@@ -45,11 +38,11 @@ services:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "web"
     restart: always
-  # docker 管理监控
+  # docker管理监控
   portainer:
     image: portainer/portainer:latest
     ports:
-      - "${BILLING_PORT}:9000" #1234为提供服务端口,按需修改
+      - "${BILLING_PORT}:9000" 
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PORTAINER_CN}:/public

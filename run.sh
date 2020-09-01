@@ -1,5 +1,5 @@
 #!/bin/bash
-# author: soroke
+# author: Soroke
 
 #设置环境变量
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH
@@ -39,15 +39,17 @@ colorEcho_noline(){
 
 #问询
 colorEcho ${GREEN} "##########################请操作项目##########################"
-colorEcho ${GREEN} "##############################################################"
-colorEcho ${GREEN} "#(1)配置端口和数据库(未配置使用默认值)                       #"
+colorEcho ${GREEN} "######################Powered by Soroke#######################"
+colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
 colorEcho ${GREEN} "#(2)环境安装                                                 #"
-colorEcho ${GREEN} "#(3)启动私服(步骤2完成后,启动前上传服务端到/root目录)        #"
+colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
 colorEcho ${GREEN} "#(4)关闭私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(5)私服重启(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(5)重启私服(步骤2完成后)                                    #"
 colorEcho ${GREEN} "#(6)我要换端(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要修改配置)            #"
+colorEcho ${GREEN} "#(8)监控资源状态                                             #"
 colorEcho ${GREEN} "#(0)退出脚本                                                 #"
-colorEcho ${GREEN} "##############################################################"
+colorEcho ${GREEN} "######################Powered by Soroke#######################"
 colorEcho ${GREEN} "##############################################################"
 colorEcho_noline ${GREEN} "输入对应数字回车:"
 read chose
@@ -60,32 +62,53 @@ case $chose in
 		colorEcho ${FUCHSIA} "请修改./config/config.ini配置文件" && exit -1
 		;;
 	2)
-		echo "环境安装"
-		init_clock
-		replace_install_plugins
-		install_docker
-		install_swap
+		colorEcho ${BLUE} "开始执行基础环境安装"
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
+			init_clock
+			replace_install_plugins
+			install_docker
+			install_swap
+			build_image
+		else 
+			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下" && exit -1
+		fi
 		;;
 	3)
-		echo "启动私服"
 		init_env
 		unzip_server
-		
+		modf_config
+		server_start
+		colorEcho ${BLUE} "私服启动完毕"
 		;;
 	4)
-		echo "关闭私服"
+		server_stop
+		colorEcho ${BLUE} "私服已关闭"
 		;;
 	5)
-		echo "私服重启"
+		server_stop
+		server_start
+		colorEcho ${BLUE} "私服已重启完成"
 		;;
 	6)
-		echo "执行换端操作"
 		init_env
 		unzip_server
-		
+		modf_config
+		server_start
+		colorEcho ${BLUE} "换端操作执行完毕"
+		;;
+	7)
+		server_stop
+		init_env
+		build_image
+		modf_config
+		server_start
+		colorEcho ${BLUE} "新修改配置文件已加载完毕,私服已重启"
+		;;
+	8)
+		colorEcho ${BLUE} "请访问http://${IP}:81 查看状态。"
 		;;
 	*)
-		colorEcho ${FUCHSIA} "选项不存在" && exit -1
+		colorEcho ${FUCHSIA} "未知选项" && exit -1
 	;;
 esac
 
@@ -171,24 +194,31 @@ function init_env() {
 		mkdir -p ${DIR}/.env
 	fi
 	
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
 	echo "WEB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
 	echo "TLBB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
 	echo "WEB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
 	echo "TLBB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
 	echo "LOGIN_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
 	echo "SERVER_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
 	echo "BILLING_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT
 	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
-	source ./${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT
 	echo "PORTAINER_PORT=${iniValue}" >> ${DIR}/.env
+	#配置所用3个镜像的名称
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME
+	echo "TLBB_SERVER_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME
+	echo "TLBBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME
+	echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	
 	echo "SERVER_DIR=${SERVER_DIR}" >> ${DIR}/.env
 	echo "PORTAINER_CN=${SERVER_DIR}/Portainer-CN" >> ${DIR}/.env
@@ -202,7 +232,7 @@ function unzip_server() {
 		colorEcho ${GREEN} "billing服务已存在,不做处理。。。"
 	elif [ -f "$BILLING_PATH" ];	
 		unzip -d $BILLING_PATH $SERVER_DIR/billing
-		chmod -R +x $SERVER_DIR/billing/*
+		chmod -R a+x $SERVER_DIR/billing/*
 		colorEcho ${GREEN} "billing服务解压完成。。。"
 	else
 		colorEcho ${GREEN} "${BILLING_PATH}下billing服务文件不存在,请重新下载该项目"
@@ -230,7 +260,95 @@ function unzip_server() {
 	fi
 }
 
+#修改配置文件为指定内容
+function modf_config() {
+	#读取所有配置
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	tlbbdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	webdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	tlbbdb_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	webdb_port=${iniValue}
+	
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	login_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	server_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	billing_port=${iniValue}
+	
+	#替换billing配置文件
+	while read line
+	do
+	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
+		sed -i "s/${line}/\"port\": \"${billing_port}\"/g" $SERVER_DIR/billing/config.json
+	  elif [[ "$line" =~ "db_port" ]];then
+		sed -i "s/${line}/\"db_port\": \"${webdb_port}\"/g" $SERVER_DIR/billing/config.json
+	  elif [[ "$line" =~ "db_password" ]];then
+		sed -i "s/${line}/\"db_password\": \"${webdb_password}\"/g" $SERVER_DIR/billing/config.json
+	  fi
+		echo $line
+	done < $SERVER_DIR/billing/config.json
+	
+	#解压后tlbb服务文件地址
+	tlbb_path=$SERVER_DIR/server/tlbb
+	#替换ServerInfo.ini
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Billing Port0 ${billing_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server0 Port0 ${server_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 Port0 ${login_port}
+	
+	#替换LoginInfo.ini
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPassword ${tlbbdb_password}
+	
+	#替换ShareMemInfo.ini
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
+}
 
+#本地生成镜像
 function build_image() {
-	#
+
+	#替换odbc.ini的数据库端口和root密码配置
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	tlbbdb_port=${iniValue}
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb PORT ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default PORT ${tlbbdb_port}
+	
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	tlbbdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb Password ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default Password ${tlbbdb_password}
+
+	
+	#tlbb_server 镜像构建(可能耗时较长)
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME
+	docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server
+	#tlbbdb数据库
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME
+	docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb
+	#webdb数据库
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME
+	docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb
+	
+	
+	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
+}
+
+function server_start(){
+	#启动billing认证
+	cd $SERVER_DIR/billing && ./billing up -d
+	#启动镜像
+	docker-compose -f ${DIR}/docker-compose.yml up -d
+	#启动私服
+	docker-compose -f ${DIR}/docker-compose.yml exec server /bin/bash run.sh
+}
+
+function server_stop(){
+	#停止私服
+	docker-compose -f ${DIR}/docker-compose.yml down
+	#停止billing认证
+	cd $SERVER_DIR/billing && ./billing stop
 }
