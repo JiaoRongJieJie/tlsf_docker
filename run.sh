@@ -214,11 +214,11 @@ function modf_config() {
 	while read line
 	do
 	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
-		sed -i "s/${line}/\"port\": ${billing_port}/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"port\": ${billing_port},/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_port" ]];then
-		sed -i "s/${line}/\"db_port\": ${webdb_port}/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_port\": ${webdb_port},/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
-		sed -i "s/${line}/\"db_password\": \"${webdb_password}\"/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_password\": \"${webdb_password},\"/g" $SERVER_DIR/billing/config.json
 	  fi
 	done < $SERVER_DIR/billing/config.json
 	
@@ -268,10 +268,10 @@ function build_image() {
 }
 
 function server_start(){
-	#启动billing认证
-	cd $SERVER_DIR/billing && ./billing up -d
 	#启动镜像
 	docker-compose -f ${DIR}/docker-compose.yml up -d
+	#启动billing认证
+	cd $SERVER_DIR/billing && ./billing up -d
 	#启动私服
 	docker-compose -f ${DIR}/docker-compose.yml exec server /bin/bash run.sh
 }
