@@ -13,7 +13,7 @@ BILLING_PATH="${DIR}/toole/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/toole/Portainer-CN.zip"
 
 #读取配置获取服务安装路径
-source ./${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
+source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
 SERVER_DIR=${iniValue}
 
 mkdir -p $SERVER_DIR
@@ -157,7 +157,7 @@ function unzip_server() {
 	#billing
 	if [[ -f "$SERVER_DIR/billing/billing" ]] && [[ -f "$SERVER_DIR/billing/config.json" ]];then
 		colorEcho ${GREEN} "billing服务已存在,不做处理。。。"
-	elif [ -f "$BILLING_PATH" ];	
+	elif [ -f "$BILLING_PATH" ];then
 		unzip -d $BILLING_PATH $SERVER_DIR/billing
 		chmod -R a+x $SERVER_DIR/billing/*
 		colorEcho ${GREEN} "billing服务解压完成。。。"
