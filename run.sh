@@ -214,13 +214,12 @@ function modf_config() {
 	while read line
 	do
 	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
-		sed -i "s/${line}/\"port\": \"${billing_port}\"/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"port\": ${billing_port}/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_port" ]];then
-		sed -i "s/${line}/\"db_port\": \"${webdb_port}\"/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_port\": ${webdb_port}/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
 		sed -i "s/${line}/\"db_password\": \"${webdb_password}\"/g" $SERVER_DIR/billing/config.json
 	  fi
-		echo $line
 	done < $SERVER_DIR/billing/config.json
 	
 	#解压后tlbb服务文件地址
