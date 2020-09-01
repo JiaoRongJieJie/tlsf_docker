@@ -269,16 +269,16 @@ function build_image() {
 
 function server_start(){
 	#启动镜像
-	docker-compose -f ${DIR}/docker-compose.yml up -d
+	cd ${DIR} && docker-compose up -d
+	#启动私服
+	cd ${DIR} && docker-compose exec server /bin/bash run.sh
 	#启动billing认证
 	cd $SERVER_DIR/billing && ./billing up -d
-	#启动私服
-	docker-compose -f ${DIR}/docker-compose.yml exec server /bin/bash run.sh
 }
 
 function server_stop(){
 	#停止私服
-	docker-compose -f ${DIR}/docker-compose.yml down
+	cd ${DIR} && docker-compose down
 	#停止billing认证
 	cd $SERVER_DIR/billing && ./billing stop
 }
