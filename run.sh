@@ -16,6 +16,8 @@ PORTAINER_CN_PATH="${DIR}/toole/Portainer-CN.zip"
 source ./${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
 SERVER_DIR=${iniValue}
 
+mkdir -p $SERVER_DIR
+
 
 
 startTime=`date +%s`
