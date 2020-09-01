@@ -4,44 +4,53 @@ services:
   # Game server
   server:
     build:
-      context: ./services/server
+      context: ./docker/server
       dockerfile: Dockerfile
-    image: registry.cn-hangzhou.aliyuncs.com/yulinzhihou/tlsf_gs:v0.1
+    image: tlsf_gs:v0.1
     volumes:
-      - "${SHARED_DIR}/:/home"
+      - "${SERVER_DIR}/server:/home"
     ports:
       - "${LOGIN_PORT}:${LOGIN_PORT}"
       - "${SERVER_PORT}:${SERVER_PORT}"
       - "${BILLING_PORT}:${BILLING_PORT}"
-    restart: ${RESTART}
+    restart: always
     links:
       - tlbbdb
       - webdb
   # Game database
   tlbbdb:
     build:
-      context: ./services/tlbbdb
-    image: registry.cn-hangzhou.aliyuncs.com/yulinzhihou/tlsf_tlbbdbserver:v0.1
+      context: ./docker/tlbbdb
+    image: tlsf_tlbbdb:v0.1
     volumes:
-      - "${SHARED_DIR}/tlbbdb/mysql:/var/lib/mysql"
+      - "${SERVER_DIR}/tlbbdb/mysql:/var/lib/mysql"
     ports:
-      - "${TLBB_MYSQL_PORT}:${HOST_MYSQL_PORT}"
+      - "${TLBB_MYSQL_PORT}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${TLBBDB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${TLBB_MYSQL_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "tlbbdb"
-    restart: ${RESTART}
+    restart: always
   # Web database
   webdb:
     build:
-      context: ./services/webdb
-    image: registry.cn-hangzhou.aliyuncs.com/yulinzhihou/tlsf_webdbserver:v0.1
+      context: ./docker/webdb
+    image: tlsf_webdb:v0.1
     volumes:
-    - "${SHARED_DIR}/webdb/mysql:/var/lib/mysql"
+    - "${SERVER_DIR}/webdb/mysql:/var/lib/mysql"
     ports:
-    - "${WEB_MYSQL_PORT}:${HOST_MYSQL_PORT}"
+    - "${WEB_MYSQL_PORT}:3306"
     environment:
-      MYSQL_ROOT_PASSWORD: ${WEBDB_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${WEB_MYSQL_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "web"
-    restart: ${RESTART}
+    restart: always
+  # docker 管理监控
+  portainer:
+    image: portainer/portainer:latest
+    ports:
+      - "${BILLING_PORT}:9000" #1234为提供服务端口,按需修改
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ${PORTAINER_CN}:/public
+    restart: always
