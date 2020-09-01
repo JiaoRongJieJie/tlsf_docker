@@ -314,6 +314,7 @@ case $chose in
 			install_docker
 			install_swap
 			build_image
+			colorEcho ${BLUE} "基础环境安装完毕"
 		else 
 			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下" && exit -1
 		fi
