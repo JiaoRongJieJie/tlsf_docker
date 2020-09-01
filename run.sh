@@ -39,81 +39,6 @@ colorEcho_noline(){
 }
 
 
-#问询
-colorEcho ${GREEN} "##########################请操作项目##########################"
-colorEcho ${GREEN} "######################Powered by Soroke#######################"
-colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
-colorEcho ${GREEN} "#(2)环境安装                                                 #"
-colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(4)关闭私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(5)重启私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(6)我要换端(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要修改配置)            #"
-colorEcho ${GREEN} "#(8)监控资源状态                                             #"
-colorEcho ${GREEN} "#(0)退出脚本                                                 #"
-colorEcho ${GREEN} "######################Powered by Soroke#######################"
-colorEcho ${GREEN} "##############################################################"
-colorEcho_noline ${GREEN} "输入对应数字回车:"
-read chose
-
-case $chose in
-	0)
-		exit -1
-		;;
-	1)
-		colorEcho ${FUCHSIA} "请修改./config/config.ini配置文件" && exit -1
-		;;
-	2)
-		colorEcho ${BLUE} "开始执行基础环境安装"
-		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
-			init_clock
-			replace_install_plugins
-			install_docker
-			install_swap
-			build_image
-		else 
-			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下" && exit -1
-		fi
-		;;
-	3)
-		init_env
-		unzip_server
-		modf_config
-		server_start
-		colorEcho ${BLUE} "私服启动完毕"
-		;;
-	4)
-		server_stop
-		colorEcho ${BLUE} "私服已关闭"
-		;;
-	5)
-		server_stop
-		server_start
-		colorEcho ${BLUE} "私服已重启完成"
-		;;
-	6)
-		init_env
-		unzip_server
-		modf_config
-		server_start
-		colorEcho ${BLUE} "换端操作执行完毕"
-		;;
-	7)
-		server_stop
-		init_env
-		build_image
-		modf_config
-		server_start
-		colorEcho ${BLUE} "新修改配置文件已加载完毕,私服已重启"
-		;;
-	8)
-		colorEcho ${BLUE} "请访问http://${IP}:81 查看状态。"
-		;;
-	*)
-		colorEcho ${FUCHSIA} "未知选项" && exit -1
-	;;
-esac
-
 
 # 初始化校验服务器时间
 function init_clock(){
@@ -354,3 +279,80 @@ function server_stop(){
 	#停止billing认证
 	cd $SERVER_DIR/billing && ./billing stop
 }
+
+
+
+#问询
+colorEcho ${GREEN} "##########################请操作项目##########################"
+colorEcho ${GREEN} "######################Powered by Soroke#######################"
+colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
+colorEcho ${GREEN} "#(2)环境安装                                                 #"
+colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(4)关闭私服(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(5)重启私服(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(6)我要换端(步骤2完成后)                                    #"
+colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要修改配置)            #"
+colorEcho ${GREEN} "#(8)监控资源状态                                             #"
+colorEcho ${GREEN} "#(0)退出脚本                                                 #"
+colorEcho ${GREEN} "######################Powered by Soroke#######################"
+colorEcho ${GREEN} "##############################################################"
+colorEcho_noline ${GREEN} "输入对应数字回车:"
+read chose
+
+case $chose in
+	0)
+		exit -1
+		;;
+	1)
+		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && exit -1
+		;;
+	2)
+		colorEcho ${BLUE} "开始执行基础环境安装"
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
+			init_clock
+			replace_install_plugins
+			install_docker
+			install_swap
+			build_image
+		else 
+			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下" && exit -1
+		fi
+		;;
+	3)
+		init_env
+		unzip_server
+		modf_config
+		server_start
+		colorEcho ${BLUE} "私服启动完毕"
+		;;
+	4)
+		server_stop
+		colorEcho ${BLUE} "私服已关闭"
+		;;
+	5)
+		server_stop
+		server_start
+		colorEcho ${BLUE} "私服已重启完成"
+		;;
+	6)
+		init_env
+		unzip_server
+		modf_config
+		server_start
+		colorEcho ${BLUE} "换端操作执行完毕"
+		;;
+	7)
+		server_stop
+		init_env
+		build_image
+		modf_config
+		server_start
+		colorEcho ${BLUE} "新修改配置文件已加载完毕,私服已重启"
+		;;
+	8)
+		colorEcho ${BLUE} "请访问http://${IP}:81 查看状态。"
+		;;
+	*)
+		colorEcho ${FUCHSIA} "未知选项" && exit -1
+	;;
+esac
