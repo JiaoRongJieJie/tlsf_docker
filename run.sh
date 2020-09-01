@@ -9,8 +9,8 @@ export PATH
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 CONFIG_PATH="${DIR}/config/config.ini"
 TLBB_CONFIG_PATH="${DIR}/config/tlbb"
-BILLING_PATH="${DIR}/toole/billing_Release_v1.2.2.zip"
-PORTAINER_CN_PATH="${DIR}/toole/Portainer-CN.zip"
+BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
+PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
 
 #读取配置获取服务安装路径
 source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
@@ -118,7 +118,6 @@ function install_swap() {
 function init_env() {
 	if [ -f "${DIR}/.env" ];then
 		rm -rf ${DIR}/.env
-		mkdir -p ${DIR}/.env
 	fi
 	
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
@@ -153,12 +152,17 @@ function init_env() {
 
 #解压服务包
 function unzip_server() {
-
+	if [ ! -d "$SERVER_DIR/billing" ];then 
+		mkdir -p $SERVER_DIR/billing
+	fi
+	if [ ! -d "$SERVER_DIR/server" ];then 
+		mkdir -p $SERVER_DIR/server
+	fi
 	#billing
 	if [[ -f "$SERVER_DIR/billing/billing" ]] && [[ -f "$SERVER_DIR/billing/config.json" ]];then
 		colorEcho ${GREEN} "billing服务已存在,不做处理。。。"
 	elif [ -f "$BILLING_PATH" ];then
-		unzip -d $BILLING_PATH $SERVER_DIR/billing
+		unzip $BILLING_PATH -d $SERVER_DIR/billing
 		chmod -R a+x $SERVER_DIR/billing/*
 		colorEcho ${GREEN} "billing服务解压完成。。。"
 	else
