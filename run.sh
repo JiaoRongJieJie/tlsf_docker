@@ -248,19 +248,20 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBIP $TLBBDB_COMPOSE_NAME
 	
 	#替换ShareMemInfo.ini
-	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort 3306
-	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
-	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
-	while read line
-	do
-	  if [[ "$line" =~ "DBIP" ]];then
-		sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${config_source}/ShareMemInfo.ini
-	  elif [[ "$line" =~ "DBPort" ]];then
-		sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${config_source}/ShareMemInfo.ini
-	  elif [[ "$line" =~ "DBPassword" ]];then
-		sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${config_source}/ShareMemInfo.ini
-	  fi
-	done < ${config_source}/ShareMemInfo.ini
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPort 3306
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBIP tlbbdb
+	
+	#while read line
+	#do
+	#  if [[ "$line" =~ "DBIP" ]];then
+	#	sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${config_source}/ShareMemInfo.ini
+	#  elif [[ "$line" =~ "DBPort" ]];then
+	#	sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${config_source}/ShareMemInfo.ini
+	#  elif [[ "$line" =~ "DBPassword" ]];then
+	#	sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${config_source}/ShareMemInfo.ini
+	#  fi
+	#done < ${config_source}/ShareMemInfo.ini
 	
 	#复制修改完成的文件到TLBB服务端
 	\cp -rf ${config_source}/*.ini ${tlbb_path}/Server/Config/
@@ -362,7 +363,7 @@ case $chose in
 		colorEcho_noline ${BLUE} "基础环境安装完毕," && echo -e "总耗时:\e[44m $outTime \e[0m 分钟!"
 		;;
 	3)
-		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]] || [[ -d "$SERVER_DIR/server/tlbb" ]]; then
 			init_env
 			unzip_server
 			modf_config
