@@ -366,8 +366,8 @@ case $chose in
 		fi
 		;;
 	7)
-		server_stop
 		init_env
+		server_stop
 		build_image
 		modf_config
 		server_start
