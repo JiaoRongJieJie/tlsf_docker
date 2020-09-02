@@ -361,10 +361,10 @@ case $chose in
 		start_dockerCompose
 		endTime=`date +%s`
 		((outTime=($endTime-$startTime)/60))
-		colorEcho_noline ${BLUE} "基础环境安装完毕," && echo -e "总耗时:\e[44m $outTime \e[0m 分钟!"
+		colorEcho_noline ${BLUE} "基础环境安装完毕," && echo -e "总耗时:\e[44m $outTime \e[0m 分钟! "
 		;;
 	3)
-		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]] || [[ -d "$SERVER_DIR/server/tlbb" ]]; then
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]] || [[ -d "$SERVER_DIR/server/tlbb/run.sh" ]]; then
 			unzip_server
 			modf_config
 			start_tlbb_server
