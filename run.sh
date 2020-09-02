@@ -220,7 +220,7 @@ function modf_config() {
 	  elif [[ "$line" =~ "db_host" ]];then
 		sed -i "s/${line}/\"db_host\": \"webdb\",/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
-		sed -i "s/${line}/\"db_password\": \"${webdb_password},\"/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_password\": \"${webdb_password}\",/g" $SERVER_DIR/billing/config.json
 	  fi
 	done < $SERVER_DIR/billing/config.json
 	#修改换行结尾为unix的RF
