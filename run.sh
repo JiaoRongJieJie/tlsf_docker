@@ -76,11 +76,11 @@ function install_docker() {
 		colorEcho ${GREEN} "docker-ce已安装, docker-compose未安装，执行docker-compose安装"
 		sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 		sudo yum makecache fast && sudo yum -y install docker-compose && sudo systemctl enable docker && sudo systemctl start docker
-	elif [[! $docker_version =~ "Docker version" ]] && [[ $dockerCompose_version =~ "docker-compose version" ]];then
+	elif [[ ! $docker_version =~ "Docker version" ]] && [[ $dockerCompose_version =~ "docker-compose version" ]];then
 		colorEcho ${GREEN} "docker-compose已安装, docker-ce未安装，执行docker-ce安装"
 		sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 		sudo yum makecache fast && sudo yum -y install docker-ce && sudo systemctl enable docker && sudo systemctl start docker
-	elif [[! $docker_version =~ "Docker version" ]] && [[ ! $dockerCompose_version =~ "docker-compose version" ]];then
+	elif [[ ! $docker_version =~ "Docker version" ]] && [[ ! $dockerCompose_version =~ "docker-compose version" ]];then
 		colorEcho ${GREEN} "docker-ce 和 docker-compose都未安装，开始执行安装部署"
 	    sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 		sudo yum makecache fast && sudo yum -y install docker-ce docker-compose && sudo systemctl enable docker && sudo systemctl start docker
