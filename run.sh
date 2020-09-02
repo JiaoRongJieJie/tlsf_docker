@@ -232,6 +232,9 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Billing Port0 ${billing_port}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server0 Port0 ${server_port}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 Port0 ${login_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Billing IP0 127.0.0.1
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server0 IP0 127.0.0.1
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 IP0 127.0.0.1
 	
 	#替换LoginInfo.ini
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort ${tlbbdb_port}
