@@ -256,18 +256,16 @@ function modf_config() {
 function build_image() {
 
 	#替换odbc.ini的数据库端口和root密码配置
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
-	tlbbdb_port=${iniValue}
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb PORT ${tlbbdb_port}
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default PORT ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb PORT 3306
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default PORT 3306
 	
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb Password ${tlbbdb_password}
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default Password ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb Password ${iniValue}
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default Password ${iniValue}
 	#修改host为docker内部标识
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default SERVER tlbbdb
-	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb SERVER tlbbdb
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default SERVER tlbbdb
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb SERVER tlbbdb
 
 	
 	#tlbb_server 镜像构建(可能耗时较长)
