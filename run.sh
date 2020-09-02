@@ -257,6 +257,8 @@ function modf_config() {
 	  fi
 	done < ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	
+	#修改run脚本
+	sed -i 's/exit$/tail -f \/dev\/null/g' ${tlbb_path}/run.sh
 	#修改换行结尾为unix的RF
 	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/LoginInfo.ini
