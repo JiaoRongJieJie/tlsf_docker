@@ -166,7 +166,7 @@ function unzip_server() {
 		chmod -R a+x $SERVER_DIR/billing/*
 		colorEcho ${GREEN} "billing服务解压完成。。。"
 	else
-		colorEcho ${GREEN} "${BILLING_PATH}下billing服务文件不存在,请重新下载该项目"
+		colorEcho ${GREEN} "${BILLING_PATH}文件不存在,请重新下载该项目"
 	fi
 	
 	#tlbb
@@ -187,7 +187,7 @@ function unzip_server() {
 		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN && chown -R root:root $SERVER_DIR/Portainer-CN
 		colorEcho ${GREEN} "Portainer-CN 汉化包解压完成。。。"
 	else
-		colorEcho ${GREEN} "${PORTAINER_CN_PATH}下Portainer-CN汉化包文件不存在,请重新下载该项目"
+		colorEcho ${GREEN} "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
 	fi
 }
 
@@ -216,7 +216,7 @@ function modf_config() {
 	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
 		sed -i "s/${line}/\"port\": ${billing_port},/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_port" ]];then
-		sed -i "s/${line}/\"db_port\": ${webdb_port},/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_port\": 3306,/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_host" ]];then
 		sed -i "s/${line}/\"db_host\": \"webdb\",/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
@@ -237,12 +237,12 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 IP0 127.0.0.1
 	
 	#替换LoginInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort 3306
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPassword ${tlbbdb_password}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBIP tlbbdb
 	
 	#替换ShareMemInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort ${tlbbdb_port}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort 3306
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
 	
@@ -288,7 +288,7 @@ function server_start(){
 	#启动镜像
 	cd ${DIR} && docker-compose up -d
 	#启动billing认证
-	cd ${DIR} && docker-compose exec server /bin/bash /opt/billing up -d
+	cd ${DIR} && docker-compose exec server /opt/billing up -d
 	#启动私服
 	cd ${DIR} && docker-compose exec server /bin/bash run.sh
 }
