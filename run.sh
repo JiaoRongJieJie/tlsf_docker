@@ -357,6 +357,7 @@ case $chose in
 		install_docker
 		install_swap
 		build_image
+		init_env
 		start_dockerCompose
 		endTime=`date +%s`
 		((outTime=($endTime-$startTime)/60))
@@ -364,7 +365,6 @@ case $chose in
 		;;
 	3)
 		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]] || [[ -d "$SERVER_DIR/server/tlbb" ]]; then
-			init_env
 			unzip_server
 			modf_config
 			start_tlbb_server
