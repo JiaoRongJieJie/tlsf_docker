@@ -286,9 +286,16 @@ function server_start(){
 	#启动镜像
 	cd ${DIR} && docker-compose up -d
 	#启动billing认证
-	cd ${DIR} && docker-compose exec server /opt/billing up -d
+	cd ${DIR} && docker-compose exec -d server /opt/billing up
 	#启动私服
-	cd ${DIR} && docker-compose exec server /bin/bash run.sh
+	cd ${DIR} && docker-compose exec -d server /bin/bash Server/shm start
+	sleep 15
+	docker-compose exec -d server /bin/bash Server/World
+	sleep 5
+	docker-compose exec -d server /bin/bash Server/Login
+	sleep 1
+	docker-compose exec -d server /bin/bash Server/Server
+	sleep 2
 }
 
 function server_stop(){
@@ -300,7 +307,7 @@ function server_stop(){
 
 #问询
 clear
-colorEcho ${GREEN} "##########################请操作项目##########################"
+colorEcho ${GREEN} "##########################天龙私服安装#########################"
 colorEcho ${GREEN} "######################Powered by Soroke#######################"
 colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
 colorEcho ${GREEN} "#(2)环境安装                                                 #"
