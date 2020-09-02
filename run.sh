@@ -242,9 +242,20 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBIP tlbbdb
 	
 	#替换ShareMemInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort 3306
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
+	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort 3306
+	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
+	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
+	
+	while read line
+	do
+	  if [[ "$line" =~ "DBIP" ]];then
+		sed -i "s/${line}/DBIP=tlbbdb\t\t;数据库ip/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+	  elif [[ "$line" =~ "DBPort" ]];then
+		sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+	  elif [[ "$line" =~ "DBPassword" ]];then
+		sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+	  fi
+	done < ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	
 	#修改换行结尾为unix的RF
 	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ShareMemInfo.ini
