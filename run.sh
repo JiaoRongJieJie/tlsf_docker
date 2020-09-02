@@ -288,14 +288,7 @@ function server_start(){
 	#启动billing认证
 	cd ${DIR} && docker-compose exec -d server /opt/billing up
 	#启动私服
-	cd ${DIR} && docker-compose exec -d server /bin/bash Server/shm start
-	sleep 15
-	docker-compose exec -d server /bin/bash Server/World
-	sleep 5
-	docker-compose exec -d server /bin/bash Server/Login
-	sleep 1
-	docker-compose exec -d server /bin/bash Server/Server
-	sleep 2
+	cd ${DIR} && docker-compose exec -d server /bin/bash run.sh
 }
 
 function server_stop(){
