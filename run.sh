@@ -11,6 +11,8 @@ CONFIG_PATH="${DIR}/config/config.ini"
 TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
+TLBBDB_COMPOSE_NAME=tlbbdb
+WEBDB_COMPOSE_NAME=webdb
 
 #读取配置获取服务安装路径
 source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
@@ -210,7 +212,7 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
 	billing_port=${iniValue}
 	
-	#替换billing配置文件db_host
+	#替换billing配置文件
 	while read line
 	do
 	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
@@ -226,43 +228,44 @@ function modf_config() {
 	#修改换行结尾为unix的RF
 	sed -i 's/\r//g' $SERVER_DIR/billing/config.json
 	
+	
+	
 	#解压后tlbb服务文件地址
 	tlbb_path=$SERVER_DIR/server/tlbb
+	config_source=${DIR}/config/tlbb_config
 	#替换ServerInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Billing Port0 ${billing_port}
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server0 Port0 ${server_port}
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 Port0 ${login_port}
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Billing IP0 127.0.0.1
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server0 IP0 127.0.0.1
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ServerInfo.ini Server1 IP0 127.0.0.1
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing Port0 ${billing_port}
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 Port0 ${server_port}
+	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 Port0 ${login_port}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing IP0 127.0.0.1
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 IP0 127.0.0.1
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 IP0 127.0.0.1
+	
 	
 	#替换LoginInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort 3306
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPassword ${tlbbdb_password}
-	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBIP tlbbdb
+	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPort 3306
+	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPassword ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBIP $TLBBDB_COMPOSE_NAME
 	
 	#替换ShareMemInfo.ini
 	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort 3306
 	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
 	#source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
-	
 	while read line
 	do
 	  if [[ "$line" =~ "DBIP" ]];then
-		sed -i "s/${line}/DBIP=tlbbdb\t\t;数据库ip/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+		sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	  elif [[ "$line" =~ "DBPort" ]];then
 		sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	  elif [[ "$line" =~ "DBPassword" ]];then
 		sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
 	  fi
-	done < ${tlbb_path}/Server/Config/ShareMemInfo.ini
+	done < ${config_source}/ShareMemInfo.ini
 	
+	#复制修改完成的文件到TLBB服务端
+	\cp -rf ${config_source}/*.ini ${config_source}/Server/Config/
 	#修改run脚本
 	sed -i 's/exit$/tail -f \/dev\/null/g' ${tlbb_path}/run.sh
-	#修改换行结尾为unix的RF
-	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ShareMemInfo.ini
-	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/LoginInfo.ini
-	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ServerInfo.ini
 }
 
 #本地生成镜像
@@ -295,18 +298,28 @@ function build_image() {
 	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
 }
 
-function server_start(){
+function start_dockerCompose() {
 	#启动镜像
 	cd ${DIR} && docker-compose up -d
+}
+
+function stop_dockerCompose() {
+	#启动镜像
+	cd ${DIR} && docker-compose down
+}
+
+function start_tlbb_server(){
 	#启动billing认证
 	cd ${DIR} && docker-compose exec -d server /opt/billing up
 	#启动私服
 	cd ${DIR} && docker-compose exec -d server /bin/bash run.sh
 }
 
-function server_stop(){
+function stop_tlbb_server(){
+	#停止billing认证服务
+	cd ${DIR} && docker-compose exec -d server /opt/billing stop
 	#停止私服
-	cd ${DIR} && docker-compose down
+	cd ${DIR} && docker-compose exec -d server /bin/bash stop.sh
 }
 
 
@@ -321,8 +334,8 @@ colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                          
 colorEcho ${GREEN} "#(4)关闭私服                                                 #"
 colorEcho ${GREEN} "#(5)重启私服                                                 #"
 colorEcho ${GREEN} "#(6)我要换端                                                 #"
-colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要重新生成配置)        #"
-colorEcho ${GREEN} "#(8)监控资源状态                                             #"
+colorEcho ${GREEN} "#(7)修改配置/重新生成                                        #"
+colorEcho ${GREEN} "#(8)删除服务且删除项目                                       #"
 colorEcho ${GREEN} "#(0)退出脚本                                                 #"
 colorEcho ${GREEN} "######################Powered by Soroke#######################"
 colorEcho ${GREEN} "##############################################################"
@@ -337,55 +350,83 @@ case $chose in
 		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && clear && ${DIR}/run.sh
 		;;
 	2)
-		colorEcho ${BLUE} "开始执行基础环境安装"
-		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
-			init_clock
-			replace_install_plugins
-			install_docker
-			install_swap
-			build_image
-			colorEcho ${BLUE} "基础环境安装完毕"
-		else 
-			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下" && exit -1
-		fi
+		startTime=`date +%s`
+		init_clock
+		replace_install_plugins
+		install_docker
+		install_swap
+		build_image
+		start_dockerCompose
+		endTime=`date +%s`
+		((outTime=($endTime-$startTime)/60))
+		colorEcho_noline ${BLUE} "基础环境安装完毕," && echo -e "总耗时:\e[44m $outTime \e[0m 分钟!"
 		;;
 	3)
-		init_env
-		unzip_server
-		modf_config
-		server_start
-		colorEcho ${BLUE} "私服启动完毕"
-		;;
-	4)
-		server_stop
-		colorEcho ${BLUE} "私服已关闭"
-		;;
-	5)
-		server_stop
-		server_start
-		colorEcho ${BLUE} "私服已重启完成"
-		;;
-	6)
 		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
 			init_env
 			unzip_server
 			modf_config
-			server_start
-			colorEcho ${BLUE} "换端操作执行完毕"
+			start_tlbb_server
+			colorEcho ${BLUE} "私服启动完毕,建议访问http://IP:81 在线监控启动状态"
+		else 
+			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传服务端至【/root】目录下再来启动服务" && exit -1
+		fi
+		;;
+	4)
+		stop_tlbb_server
+		colorEcho ${BLUE} "私服已关闭"
+		;;
+	5)
+		stop_tlbb_server
+		start_tlbb_server
+		colorEcho ${BLUE} "私服已重启完成"
+		;;
+	6)
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
+			stop_tlbb_server
+			unzip_server
+			modf_config
+			colorEcho_noline ${BLUE} "换端操作执行完毕,是否需要启动新的服务端(0=直接启动,1=不启动):"
+			read is_start_server
+			case $is_start_server in
+				0)
+					start_tlbb_server
+					colorEcho ${BLUE} "新端服务已启动,建议访问http://IP:81 在线监控启动状态"
+					;;
+				1)
+					exit -1
+					;;
+				*)
+					colorEcho ${FUCHSIA} "未知选项" && exit -1
+					;;
+			esac
 		else
-			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请先上传至 [/root] 目录下,再来执行换端操作把"
+			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请先上传服务端至【/root】目录下,再来执行换端操作"
 		fi
 		;;
 	7)
-		init_env
-		server_stop
-		build_image
-		modf_config
-		server_start
-		colorEcho ${BLUE} "新修改配置文件已加载完毕,私服已重启"
+		colorEcho_noline ${BLUE} "当前操作会删除所有正在运行的服务并重新生成，确认要继续吗？(0=确认执行,1=返回主菜单):"
+		read is_jixu
+		case $is_jixu in
+			0)
+				stop_dockerCompose
+				init_env
+				build_image
+				modf_config
+				start_tlbb_server
+				colorEcho ${BLUE} "修改配置已加载完毕,服务已重新启动,建议访问http://IP:81 在线监控启动状态"
+				;;
+			1)
+				clear && ${DIR}/run.sh
+				;;
+			*)
+				colorEcho ${FUCHSIA} "未知选项" && exit -1
+				;;
+		esac
 		;;
 	8)
-		colorEcho ${BLUE} "请访问http://${IP}:81 查看状态。"
+		stop_dockerCompose
+		rm -rf ${SERVER_DIR}
 		;;
 	*)
 		colorEcho ${FUCHSIA} "未知选项" && exit -1
