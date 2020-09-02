@@ -263,7 +263,7 @@ function modf_config() {
 	done < ${config_source}/ShareMemInfo.ini
 	
 	#复制修改完成的文件到TLBB服务端
-	\cp -rf ${config_source}/*.ini ${config_source}/Server/Config/
+	\cp -rf ${config_source}/*.ini ${tlbb_path}/Server/Config/
 	#修改run脚本
 	sed -i 's/exit$/tail -f \/dev\/null/g' ${tlbb_path}/run.sh
 }
@@ -328,7 +328,7 @@ function stop_tlbb_server(){
 clear
 colorEcho ${GREEN} "##########################天龙私服安装#########################"
 colorEcho ${GREEN} "######################Powered by Soroke#######################"
-colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
+colorEcho ${GREEN} "#(1)端口密码配置(未配置使用默认值)                           #"
 colorEcho ${GREEN} "#(2)环境安装                                                 #"
 colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
 colorEcho ${GREEN} "#(4)关闭私服                                                 #"
