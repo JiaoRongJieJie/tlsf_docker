@@ -171,10 +171,10 @@ function unzip_server() {
 	
 	#tlbb
 	if [ -f "/root/tlbb.tar.gz" ]; then
-		rm -rf $SERVER_DIR/tlbb && tar zxf /root/tlbb.tar.gz -C $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.tar.gz
+		rm -rf $SERVER_DIR/server/tlbb && tar zxf /root/tlbb.tar.gz -C $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.tar.gz
 		colorEcho ${GREEN} "服务端文件【/root/tlbb.tar.gz】已经解压成功！！"
 	elif [ -f "/root/tlbb.zip" ]; then
-		rm -rf $SERVER_DIR/tlbb && unzip /root/tlbb.zip -d $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.zip
+		rm -rf $SERVER_DIR/server/tlbb && unzip /root/tlbb.zip -d $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.zip
 		colorEcho ${GREEN} "服务端文件【/root/tlbb.zip】已经解压成功！！"
 	else
 		colorEcho ${GREEN} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下面！！"
