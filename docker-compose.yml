@@ -6,6 +6,7 @@ services:
     image: ${TLBB_SERVER_IMAGE_NAME}:v0.1
     volumes:
       - "${SERVER_DIR}/server:/home"
+      - "${SERVER_DIR}/billing:/opt"
     ports:
       - "${LOGIN_PORT}:${LOGIN_PORT}"
       - "${SERVER_PORT}:${SERVER_PORT}"

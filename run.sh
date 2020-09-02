@@ -210,17 +210,21 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
 	billing_port=${iniValue}
 	
-	#替换billing配置文件
+	#替换billing配置文件db_host
 	while read line
 	do
 	  if [[ "$line" =~ "port" ]] && [[ ! "$line" =~ "db_port" ]];then
 		sed -i "s/${line}/\"port\": ${billing_port},/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_port" ]];then
 		sed -i "s/${line}/\"db_port\": ${webdb_port},/g" $SERVER_DIR/billing/config.json
+	  elif [[ "$line" =~ "db_host" ]];then
+		sed -i "s/${line}/\"db_host\": \"webdb\",/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
 		sed -i "s/${line}/\"db_password\": \"${webdb_password},\"/g" $SERVER_DIR/billing/config.json
 	  fi
 	done < $SERVER_DIR/billing/config.json
+	#修改换行结尾为unix的RF
+	sed -i 's/\r//g' $SERVER_DIR/billing/config.json
 	
 	#解压后tlbb服务文件地址
 	tlbb_path=$SERVER_DIR/server/tlbb
@@ -232,10 +236,12 @@ function modf_config() {
 	#替换LoginInfo.ini
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPort ${tlbbdb_port}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBPassword ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/LoginInfo.ini System DBIP tlbbdb
 	
 	#替换ShareMemInfo.ini
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPort ${tlbbdb_port}
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
+	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
 }
 
 #本地生成镜像
@@ -251,6 +257,9 @@ function build_image() {
 	tlbbdb_password=${iniValue}
 	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb Password ${tlbbdb_password}
 	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default Password ${tlbbdb_password}
+	#修改host为docker内部标识
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH Default SERVER tlbbdb
+	source ${DIR}/tools/readIni.sh -w $CONFIG_PATH tlbbdb SERVER tlbbdb
 
 	
 	#tlbb_server 镜像构建(可能耗时较长)
@@ -270,31 +279,30 @@ function build_image() {
 function server_start(){
 	#启动镜像
 	cd ${DIR} && docker-compose up -d
+	#启动billing认证
+	cd ${DIR} && docker-compose exec server /bin/bash /opt/billing up -d
 	#启动私服
 	cd ${DIR} && docker-compose exec server /bin/bash run.sh
-	#启动billing认证
-	cd $SERVER_DIR/billing && ./billing up -d
 }
 
 function server_stop(){
 	#停止私服
 	cd ${DIR} && docker-compose down
-	#停止billing认证
-	cd $SERVER_DIR/billing && ./billing stop
 }
 
 
 
 #问询
+clear
 colorEcho ${GREEN} "##########################请操作项目##########################"
 colorEcho ${GREEN} "######################Powered by Soroke#######################"
 colorEcho ${GREEN} "#(1)配置环境参数(未配置使用默认值)                           #"
 colorEcho ${GREEN} "#(2)环境安装                                                 #"
 colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(4)关闭私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(5)重启私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(6)我要换端(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要修改配置)            #"
+colorEcho ${GREEN} "#(4)关闭私服                                                 #"
+colorEcho ${GREEN} "#(5)重启私服                                                 #"
+colorEcho ${GREEN} "#(6)我要换端                                                 #"
+colorEcho ${GREEN} "#(7)我修改了配置文件(私服已启动成功,需要重新生成配置)        #"
 colorEcho ${GREEN} "#(8)监控资源状态                                             #"
 colorEcho ${GREEN} "#(0)退出脚本                                                 #"
 colorEcho ${GREEN} "######################Powered by Soroke#######################"
@@ -307,7 +315,7 @@ case $chose in
 		exit -1
 		;;
 	1)
-		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && exit -1
+		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && clear && ${DIR}/run.sh
 		;;
 	2)
 		colorEcho ${BLUE} "开始执行基础环境安装"
@@ -339,11 +347,15 @@ case $chose in
 		colorEcho ${BLUE} "私服已重启完成"
 		;;
 	6)
-		init_env
-		unzip_server
-		modf_config
-		server_start
-		colorEcho ${BLUE} "换端操作执行完毕"
+		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
+			init_env
+			unzip_server
+			modf_config
+			server_start
+			colorEcho ${BLUE} "换端操作执行完毕"
+		else
+			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请先上传至 [/root] 目录下,再来执行换端操作把"
+		fi
 		;;
 	7)
 		server_stop
