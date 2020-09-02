@@ -247,9 +247,9 @@ function modf_config() {
 	source ${DIR}/tools/readIni.sh -w ${tlbb_path}/Server/Config/ShareMemInfo.ini System DBIP tlbbdb
 	
 	#修改换行结尾为unix的RF
-	sed -i 's/\r//g' ${tlbb_path}/Server/Config/ShareMemInfo.ini
-	sed -i 's/\r//g' ${tlbb_path}/Server/Config/LoginInfo.ini
-	sed -i 's/\r//g' ${tlbb_path}/Server/Config/ServerInfo.ini
+	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ShareMemInfo.ini
+	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/LoginInfo.ini
+	#sed -i 's/\r//g' ${tlbb_path}/Server/Config/ServerInfo.ini
 }
 
 #本地生成镜像
