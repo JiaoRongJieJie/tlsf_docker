@@ -254,11 +254,11 @@ function modf_config() {
 	while read line
 	do
 	  if [[ "$line" =~ "DBIP" ]];then
-		sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+		sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${config_source}/ShareMemInfo.ini
 	  elif [[ "$line" =~ "DBPort" ]];then
-		sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+		sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${config_source}/ShareMemInfo.ini
 	  elif [[ "$line" =~ "DBPassword" ]];then
-		sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${tlbb_path}/Server/Config/ShareMemInfo.ini
+		sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${config_source}/ShareMemInfo.ini
 	  fi
 	done < ${config_source}/ShareMemInfo.ini
 	
