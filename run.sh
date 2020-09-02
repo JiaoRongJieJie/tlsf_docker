@@ -414,6 +414,7 @@ case $chose in
 				init_env
 				build_image
 				modf_config
+				start_dockerCompose
 				start_tlbb_server
 				colorEcho ${BLUE} "修改配置已加载完毕,服务已重新启动,建议访问http://IP:81 在线监控启动状态"
 				;;
