@@ -284,7 +284,7 @@ function modf_config() {
 	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
 	rm -rf ${DIR}/config/tlbb_config/*.ini
 	#修改run脚本
-	sed -i 's/exit$/tail -f \/dev\/null/g' ${tlbb_path}/run.sh
+	sed -i 's/exit$/tail -f \/dev\/null/g' $SERVER_DIR/server/tlbb/run.sh
 }
 
 #本地生成镜像
@@ -351,7 +351,7 @@ function start_tlbb_server(){
 	#检查服务是否为停止状态，如果停止先启动
 	server_is_start
 	st=$?
-	if [ st -eq 0 ];then
+	if [ $st -eq 0 ];then
 		cd ${DIR} && docker-compose start server
 	fi
 	#启动billing认证
@@ -368,6 +368,10 @@ function stop_tlbb_server(){
 		init_env
 		cd ${DIR} && docker-compose stop server
 	fi
+}
+
+function look_config() {
+	
 }
 
 
@@ -394,7 +398,7 @@ case $chose in
 		exit -1
 		;;
 	1)
-		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && clear && ${DIR}/run.sh
+		colorEcho ${FUCHSIA} "请修改${DIR}/config/config.ini配置文件" && vim ${DIR}/config/config.ini && clear && sh ${DIR}/run.sh
 		;;
 	2)
 		startTime=`date +%s`
