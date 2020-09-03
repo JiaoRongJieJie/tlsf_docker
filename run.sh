@@ -306,16 +306,30 @@ function build_image() {
 	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default SERVER tlbbdb >/dev/null
 	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb SERVER tlbbdb >/dev/null
 
-	
-	#tlbb_server 镜像构建(可能耗时较长)
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
-	docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server > /dev/null 2>&1 
-	#tlbbdb数据库
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
-	docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb > /dev/null 2>&1 
-	#webdb数据库
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
-	docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb > /dev/null 2>&1 
+	#判断镜像是否存在如果不存在，默认为首次生成，打印生成日志
+	tlbb_server_count=`docker image ls tlbb_server |wc -l`
+	if [ $tlbb_server_count -ge 2 ];then
+	 	#tlbb_server 镜像构建(可能耗时较长)
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server > /dev/null 2>&1 
+		#tlbbdb数据库
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb > /dev/null 2>&1 
+		#webdb数据库
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb > /dev/null 2>&1
+	else
+		#tlbb_server 镜像构建(可能耗时较长)
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server
+		#tlbbdb数据库
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb
+		#webdb数据库
+		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
+		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb
+	fi
+
 	
 	
 	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
@@ -337,15 +351,17 @@ function server_is_start() {
 
 #获取当前docker-compose，是否启动。返回启动容器数量
 function dockerCompose_startCount(){
-	sum=-2
-	oldifs="$IFS"
-	IFS=$'\n'
-	for line in `cd ${DIR} && docker-compose ps`;
-	do
-		let sum=$sum+1
-	done
-	IFS="$oldifs"
-	return $sum
+	#sum=-2
+	#oldifs="$IFS"
+	#IFS=$'\n'
+	#for line in `cd ${DIR} && docker-compose ps`;
+	#do
+	#	let sum=$sum+1
+	#done
+	#IFS="$oldifs"
+	count=`cd ${DIR} && docker-compose ps | wc -l`
+	let count=$count-2
+	return $count
 }
 
 #启动容器组
@@ -431,11 +447,11 @@ function look_config() {
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null
 	billing_port=${iniValue}
 	echo "====================================="
-	echo -e "\e[44m TLSF环境配置\e[0m"
+	echo -e "\e[44m TLSF环境配置 \e[0m"
 	echo -e "====================================="
 	echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m "
 	echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m "
-	echo -e "游戏数据库端口: :\e[44m $tlbbdb_port \e[0m !"
+	echo -e "游戏数据库端口: :\e[44m $tlbbdb_port \e[0m "
 	echo -e "账号数据库密码: :\e[44m $tlbbdb_password \e[0m "
 	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
 	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
@@ -457,7 +473,7 @@ colorEcho ${GREEN} "#(5)重启私服                                            
 colorEcho ${GREEN} "#(6)我要换端                                                  #"
 colorEcho ${GREEN} "#(7)修改配置/重新生成                                         #"
 colorEcho ${GREEN} "#(8)删除服务且删除项目                                        #"
-colorEcho ${GREEN} "#(9)查看所有配置                                              #"
+colorEcho ${GREEN} "#(9)查看配置/服务状态                                         #"
 colorEcho ${GREEN} "#(0)退出脚本                                                  #"
 colorEcho ${GREEN} "######################Powered by Soroke########################"
 colorEcho ${GREEN} "###############################################################"
@@ -550,7 +566,7 @@ case $chose in
 				look_config
 				;;
 			1)
-				clear && ${DIR}/run.sh
+				clear && sh ${DIR}/run.sh
 				;;
 			*)
 				colorEcho ${FUCHSIA} "未知选项" && exit -1
@@ -563,6 +579,26 @@ case $chose in
 		;;
 	9)
 		look_config
+		colorEcho ${GREEN} "服务状态"
+		echo "-------------------------------------"
+		colorEcho_noline ${GREEN} "容器组状态: :"
+		dockerCompose_startCount
+		dc_st=$?
+		if [ $dc_st -eq 5 ];then
+			echo -e "\e[44m 已启动 \e[0m "
+		else
+			echo -e "\e[44m 已关闭 \e[0m "
+		fi
+		
+		colorEcho_noline ${GREEN} "私服服务状态: :"
+		server_is_start
+		server_st=$?
+		if [ $server_st -eq 1 ];then
+			echo -e "\e[44m 已启动 \e[0m "
+		else
+			echo -e "\e[44m 已关闭 \e[0m "
+		fi
+		echo -e "-------------------------------------"
 		;;
 	*)
 		colorEcho ${FUCHSIA} "未知选项" && exit -1
