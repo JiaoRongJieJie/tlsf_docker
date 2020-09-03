@@ -1,12 +1,16 @@
 # tlsf_docker
-食用方法
-
-sh
+### 轻松部署某大型网游天X八部私服
+# 使用说明
+#### 1、获取所需代码
+```shell
+yum install -y git && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
-yum install -y git && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/init.sh
+或者
+```shell
+yum install -y git && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
-
-sh
-```
+#### 2、执行安装
+```shell
 tlbb
 ```
+根据提示,首先修改配置,再安装环境。之后你就看着办把
