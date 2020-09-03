@@ -440,7 +440,7 @@ function look_config() {
 	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
 	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
 	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
-	echo -e "网站把域名解析到云服务器IP上，然后把网站文件放到\e[44m ${DIR}/tomcat/ \e[0m目录里面即可访问。"
+	echo -e "网站把域名解析到云服务器IP上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可访问。"
 	echo -e "====================================="
 }
 
