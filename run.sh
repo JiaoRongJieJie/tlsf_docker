@@ -121,30 +121,32 @@ function init_env() {
 		rm -rf ${DIR}/.env
 	fi
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
 	echo "WEB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	echo "TLBB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
 	echo "WEB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	echo "TLBB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
 	echo "LOGIN_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT >/dev/null
 	echo "SERVER_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null
 	echo "BILLING_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
 	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT >/dev/null
 	echo "PORTAINER_PORT=${iniValue}" >> ${DIR}/.env
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
+	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
 	#配置所用3个镜像的名称
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
 	echo "TLBB_SERVER_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
 	echo "TLBBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null >/dev/null
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
 	echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	
 	echo "SERVER_DIR=${SERVER_DIR}" >> ${DIR}/.env
@@ -346,6 +348,7 @@ function dockerCompose_startCount(){
 	return $sum
 }
 
+#启动容器组
 function start_dockerCompose() {
 	#检查容器组是否已启动
 	dockerCompose_startCount
@@ -360,6 +363,7 @@ function start_dockerCompose() {
 	
 }
 
+#关闭容器组
 function stop_dockerCompose() {
 	#检查容器组是否已启动
 	dockerCompose_startCount
@@ -436,6 +440,7 @@ function look_config() {
 	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
 	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
 	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
+	echo -e "网站把域名解析到云服务器IP上，然后把网站文件放到\e[44m ${DIR}/tomcat/ \e[0m目录里面即可访问。"
 	echo -e "====================================="
 }
 
@@ -488,6 +493,7 @@ case $chose in
 			modf_config
 			start_tlbb_server
 			colorEcho ${BLUE} "私服启动完毕,建议访问http://IP:81 在线监控启动状态"
+			look_config
 		else 
 			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传服务端至【/root】目录下再来启动服务" && exit -1
 		fi
@@ -520,6 +526,7 @@ case $chose in
 					colorEcho ${FUCHSIA} "未知选项" && exit -1
 					;;
 			esac
+			look_config
 		else
 			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请先上传服务端至【/root】目录下,再来执行换端操作"
 		fi
@@ -540,6 +547,7 @@ case $chose in
 				start_dockerCompose
 				start_tlbb_server
 				colorEcho ${BLUE} "修改配置已加载完毕,服务已重新启动,建议访问http://IP:81 在线监控启动状态"
+				look_config
 				;;
 			1)
 				clear && ${DIR}/run.sh

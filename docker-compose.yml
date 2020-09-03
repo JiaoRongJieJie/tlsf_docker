@@ -48,3 +48,11 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PORTAINER_CN}:/public
     restart: always
+  # 前端页面(官网)
+  tomcat:
+    image: tomcat:7
+    volumes:
+      - "${SERVER_DIR}/tomcat:/usr/local/tomcat/webapps/ROOT"
+    ports:
+      - "${TOMCAT_PORT}:8080"
+    restart: always
