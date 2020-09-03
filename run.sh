@@ -1,5 +1,7 @@
 #!/bin/bash
 # author: Soroke
+# 仅支持centos7及以上版本系统，其他系统未测试
+# 已测试腾讯云1H2G1M,运行稳定
 
 #设置环境变量
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH
@@ -11,13 +13,10 @@ CONFIG_PATH="${DIR}/config/config.ini"
 TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
-TLBBDB_COMPOSE_NAME=tlbbdb
-WEBDB_COMPOSE_NAME=webdb
 
 #读取配置获取服务安装路径
 source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
 SERVER_DIR=${iniValue}
-
 mkdir -p $SERVER_DIR
 
 
@@ -318,6 +317,20 @@ function build_image() {
 	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
 }
 
+#检查镜像是否为启动状态
+function server_is_start() {
+	var=`cd ${DIR} && docker-compose ps server`
+	array=(${var// /})
+	st=0
+	for me in ${array[@]}
+	do
+	  if [[ "$me" =~ "server" ]] && [[ "$me" =~ "Up" ]];then
+			st=1
+	  fi
+	done
+	return $st
+}
+
 function start_dockerCompose() {
 	#启动镜像
 	cd ${DIR} && docker-compose up -d
@@ -328,20 +341,34 @@ function stop_dockerCompose() {
 	cd ${DIR} && docker-compose down
 }
 
+#启动天龙服务
 function start_tlbb_server(){
+	#环境不存在，先初始化环境
+	if [ ! -f ${DIR}/.env ];then
+		init_env
+	fi
+
+	#检查服务是否为停止状态，如果停止先启动
+	server_is_start
+	st=$?
+	if [ st -eq 0 ];then
+		cd ${DIR} && docker-compose start server
+	fi
 	#启动billing认证
 	cd ${DIR} && docker-compose exec -d server /opt/billing up
 	#启动私服
 	cd ${DIR} && docker-compose exec -d server /bin/bash run.sh
 }
 
+#关闭天龙服务
 function stop_tlbb_server(){
-	#停止billing认证服务
-	cd ${DIR} && docker-compose exec -d server /opt/billing stop
-	#停止私服
-	cd ${DIR} && docker-compose exec -d server /bin/bash stop.sh
+	if [ -f ${DIR}/.env ];then
+		cd ${DIR} && docker-compose stop server
+	else
+		init_env
+		cd ${DIR} && docker-compose stop server
+	fi
 }
-
 
 
 #问询
@@ -383,7 +410,10 @@ case $chose in
 		colorEcho_noline ${BLUE} "基础环境安装完毕," && echo -e "总耗时:\e[44m $outTime \e[0m 分钟! "
 		;;
 	3)
-		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]] || [[ -f "$SERVER_DIR/server/tlbb/run.sh" ]]; then
+		if [[ -f "$SERVER_DIR/server/tlbb/run.sh" ]]; then
+			start_tlbb_server
+			colorEcho ${BLUE} "服务端已存在,启动完毕。建议访问http://IP:81 在线监控启动状态"
+		elif [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
 			unzip_server
 			modf_config
 			start_tlbb_server
@@ -394,12 +424,12 @@ case $chose in
 		;;
 	4)
 		stop_tlbb_server
-		colorEcho ${BLUE} "私服已关闭"
+		colorEcho ${BLUE} "天龙私服服务已关闭"
 		;;
 	5)
 		stop_tlbb_server
 		start_tlbb_server
-		colorEcho ${BLUE} "私服已重启完成"
+		colorEcho ${BLUE} "天龙私服服务已重启完成"
 		;;
 	6)
 		if [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
@@ -429,6 +459,10 @@ case $chose in
 		read is_jixu
 		case $is_jixu in
 			0)
+				#环境不存在，先初始化环境
+				if [ ! -f ${DIR}/.env ];then
+					init_env
+				fi
 				stop_dockerCompose
 				init_env
 				build_image
