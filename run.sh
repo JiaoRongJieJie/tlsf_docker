@@ -228,29 +228,47 @@ function modf_config() {
 	#修改换行结尾为unix的RF
 	sed -i 's/\r//g' $SERVER_DIR/billing/config.json
 	
+	#解压天龙服务换端配置文件
+	tar zxf ${DIR}/config/tlbb_config/ini.tar.gz -C ${DIR}/config/tlbb_config
 	
+	#替换LoginInfo ServerInfo ShareMemInfo三个文件内容
+	if [ ${tlbbdb_password} != "123456" ]; then
+		sed -i "s/DBPassword=123456/DBPassword=${tlbbdb_password}/g" ${DIR}/config/tlbb_config/LoginInfo.ini
+		sed -i "s/DBPassword=123456/DBPassword=${tlbbdb_password}/g" ${DIR}/config/tlbb_config/ShareMemInfo.ini
+	fi
+	if [ ${billing_port} != "21818" ]; then
+		sed -i "s/Port0=21818/Port0=${billing_port}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
+	fi
+
+	if [ "${login_port}" != "13580" ]; then
+		sed -i "s/Port0=13580/Port0=${login_port}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
+	fi
+
+	if [ "${server_port}" != "15680" ]; then
+		sed -i "s/Port0=15680/Port0=${server_port}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
+	fi
 	
 	#解压后tlbb服务文件地址
-	tlbb_path=$SERVER_DIR/server/tlbb
-	config_source=${DIR}/config/tlbb_config
+	#tlbb_path=$SERVER_DIR/server/tlbb
+	#config_source=${DIR}/config/tlbb_config
 	#替换ServerInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing Port0 ${billing_port}
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 Port0 ${server_port}
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 Port0 ${login_port}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing Port0 ${billing_port}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 Port0 ${server_port}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 Port0 ${login_port}
 	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing IP0 127.0.0.1
 	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 IP0 127.0.0.1
 	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 IP0 127.0.0.1
 	
 	
 	#替换LoginInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPort 3306
-	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPassword ${tlbbdb_password}
-	source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBIP $TLBBDB_COMPOSE_NAME
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPort 3306
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPassword ${tlbbdb_password}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBIP $TLBBDB_COMPOSE_NAME
 	
 	#替换ShareMemInfo.ini
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPort 3306
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
-	source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBIP tlbbdb
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPort 3306
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
+	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBIP tlbbdb
 	
 	#while read line
 	#do
@@ -264,7 +282,8 @@ function modf_config() {
 	#done < ${config_source}/ShareMemInfo.ini
 	
 	#复制修改完成的文件到TLBB服务端
-	\cp -rf ${config_source}/*.ini ${tlbb_path}/Server/Config/
+	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
+	rm -rf ${DIR}/config/tlbb_config/*.ini
 	#修改run脚本
 	sed -i 's/exit$/tail -f \/dev\/null/g' ${tlbb_path}/run.sh
 }
@@ -305,7 +324,7 @@ function start_dockerCompose() {
 }
 
 function stop_dockerCompose() {
-	#启动镜像
+	#关闭镜像
 	cd ${DIR} && docker-compose down
 }
 
