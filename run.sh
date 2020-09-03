@@ -121,30 +121,30 @@ function init_env() {
 		rm -rf ${DIR}/.env
 	fi
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null >/dev/null
 	echo "WEB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null >/dev/null
 	echo "TLBB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null >/dev/null
 	echo "WEB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null >/dev/null
 	echo "TLBB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null >/dev/null
 	echo "LOGIN_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT >/dev/null >/dev/null
 	echo "SERVER_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null >/dev/null
 	echo "BILLING_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null >/dev/null
 	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT >/dev/null >/dev/null
 	echo "PORTAINER_PORT=${iniValue}" >> ${DIR}/.env
 	#配置所用3个镜像的名称
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null >/dev/null
 	echo "TLBB_SERVER_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null >/dev/null
 	echo "TLBBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null >/dev/null
 	echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	
 	echo "SERVER_DIR=${SERVER_DIR}" >> ${DIR}/.env
@@ -163,7 +163,7 @@ function unzip_server() {
 	if [[ -f "$SERVER_DIR/billing/billing" ]] && [[ -f "$SERVER_DIR/billing/config.json" ]];then
 		colorEcho ${GREEN} "billing服务已存在,不做处理。。。"
 	elif [ -f "$BILLING_PATH" ];then
-		unzip $BILLING_PATH -d $SERVER_DIR/billing
+		unzip $BILLING_PATH -d $SERVER_DIR/billing > /dev/null 2>&1
 		chmod -R a+x $SERVER_DIR/billing/*
 		colorEcho ${GREEN} "billing服务解压完成。。。"
 	else
@@ -175,7 +175,8 @@ function unzip_server() {
 		rm -rf $SERVER_DIR/server/tlbb && tar zxf /root/tlbb.tar.gz -C $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.tar.gz
 		colorEcho ${GREEN} "服务端文件【/root/tlbb.tar.gz】已经解压成功！！"
 	elif [ -f "/root/tlbb.zip" ]; then
-		rm -rf $SERVER_DIR/server/tlbb && unzip /root/tlbb.zip -d $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.zip
+		rm -rf $SERVER_DIR/server/tlbb && unzip /root/tlbb.zip -d $SERVER_DIR/server > /dev/null 2>&1 
+		chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.zip
 		colorEcho ${GREEN} "服务端文件【/root/tlbb.zip】已经解压成功！！"
 	else
 		colorEcho ${GREEN} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下面！！"
@@ -185,7 +186,8 @@ function unzip_server() {
 	if [[ -f "${SERVER_DIR}/Portainer-CN/index.html" ]] && [[ -d "${SERVER_DIR}/Portainer-CN/fonts" ]];then
 		colorEcho ${GREEN} "Portainer-CN 汉化包已存在,不做处理。。。"
 	elif [ -f "${PORTAINER_CN_PATH}" ]; then
-		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN && chown -R root:root $SERVER_DIR/Portainer-CN
+		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN > /dev/null 2>&1 
+		chown -R root:root $SERVER_DIR/Portainer-CN
 		colorEcho ${GREEN} "Portainer-CN 汉化包解压完成。。。"
 	else
 		colorEcho ${GREEN} "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
@@ -195,20 +197,20 @@ function unzip_server() {
 #修改配置文件为指定内容
 function modf_config() {
 	#读取所有配置
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
 	webdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	tlbbdb_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
 	webdb_port=${iniValue}
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
 	login_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT >/dev/null
 	server_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null
 	billing_port=${iniValue}
 	
 	#替换billing配置文件
@@ -291,27 +293,27 @@ function modf_config() {
 function build_image() {
 
 	#替换odbc.ini的数据库端口和root密码配置
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb PORT 3306
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default PORT 3306
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb PORT 3306 >/dev/null
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default PORT 3306 >/dev/null
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb Password ${iniValue}
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default Password ${iniValue}
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb Password ${iniValue} >/dev/null
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default Password ${iniValue} >/dev/null
 	#修改host为docker内部标识
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default SERVER tlbbdb
-	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb SERVER tlbbdb
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default SERVER tlbbdb >/dev/null
+	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb SERVER tlbbdb >/dev/null
 
 	
 	#tlbb_server 镜像构建(可能耗时较长)
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME
-	docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
+	docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server > /dev/null 2>&1 
 	#tlbbdb数据库
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME
-	docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
+	docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb > /dev/null 2>&1 
 	#webdb数据库
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME
-	docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
+	docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb > /dev/null 2>&1 
 	
 	
 	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
@@ -409,31 +411,31 @@ function stop_tlbb_server(){
 
 function look_config() {
 	#读取所有配置
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
 	webdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	tlbbdb_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
 	webdb_port=${iniValue}
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
 	login_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT >/dev/null
 	server_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null
 	billing_port=${iniValue}
 	echo "====================================="
-	echo -e "\e[44m Tlgame 环境配置如下!\e[0m"
+	echo -e "\e[44m TLSF环境配置\e[0m"
 	echo -e "====================================="
-	echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m !"
-	echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m !"
+	echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m "
+	echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m "
 	echo -e "游戏数据库端口: :\e[44m $tlbbdb_port \e[0m !"
-	echo -e "账号数据库密码: :\e[44m $tlbbdb_password \e[0m !"
-	echo -e "Billing端口: :\e[44m $billing_port \e[0m !"
-	echo -e "登录网关端口: :\e[44m $login_port \e[0m !"
-	echo -e "游戏网关端口: :\e[44m $server_port \e[0m !"
+	echo -e "账号数据库密码: :\e[44m $tlbbdb_password \e[0m "
+	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
+	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
+	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
 	echo -e "====================================="
 }
 
