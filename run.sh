@@ -331,14 +331,44 @@ function server_is_start() {
 	return $st
 }
 
+#获取当前docker-compose，是否启动。返回启动容器数量
+function dockerCompose_startCount(){
+	sum=-2
+	oldifs="$IFS"
+	IFS=$'\n'
+	for line in `cd ${DIR} && docker-compose ps`;
+	do
+		let sum=$sum+1
+	done
+	IFS="$oldifs"
+	return $sum
+}
+
 function start_dockerCompose() {
-	#启动镜像
-	cd ${DIR} && docker-compose up -d
+	#检查容器组是否已启动
+	dockerCompose_startCount
+	dc_sc=$?
+	if [ $dc_sc -eq 0 ];then
+		#启动镜像
+		cd ${DIR} && docker-compose up -d 
+		colorEcho ${GREEN} "容器组已启动。。"
+	else
+		colorEcho ${GREEN} "容器组已经启动。。"
+	fi
+	
 }
 
 function stop_dockerCompose() {
-	#关闭镜像
-	cd ${DIR} && docker-compose down
+	#检查容器组是否已启动
+	dockerCompose_startCount
+	dc_sc=$?
+	if [ $dc_sc -eq 0 ];then
+		colorEcho ${GREEN} "容器组已经关闭。。"
+	else
+		#关闭镜像
+		cd ${DIR} && docker-compose down
+		colorEcho ${GREEN} "容器组已关闭。。"
+	fi
 }
 
 #启动天龙服务
@@ -347,8 +377,15 @@ function start_tlbb_server(){
 	if [ ! -f ${DIR}/.env ];then
 		init_env
 	fi
+	
+	#检查容器组是否启动
+	dockerCompose_startCount
+	dc_sc=$?
+	if [ $dc_sc -eq 0 ];then
+		start_dockerCompose
+	fi
 
-	#检查服务是否为停止状态，如果停止先启动
+	#检查服务容器是否为停止状态，如果停止先启动
 	server_is_start
 	st=$?
 	if [ $st -eq 0 ];then
@@ -371,25 +408,52 @@ function stop_tlbb_server(){
 }
 
 function look_config() {
+	#读取所有配置
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD
+	tlbbdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD
+	webdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT
+	tlbbdb_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT
+	webdb_port=${iniValue}
 	
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT
+	login_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server SERVER_PORT
+	server_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT
+	billing_port=${iniValue}
+	echo "====================================="
+	echo -e "\e[44m Tlgame 环境配置如下!\e[0m"
+	echo -e "====================================="
+	echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m !"
+	echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m !"
+	echo -e "游戏数据库端口: :\e[44m $tlbbdb_port \e[0m !"
+	echo -e "账号数据库密码: :\e[44m $tlbbdb_password \e[0m !"
+	echo -e "Billing端口: :\e[44m $billing_port \e[0m !"
+	echo -e "登录网关端口: :\e[44m $login_port \e[0m !"
+	echo -e "游戏网关端口: :\e[44m $server_port \e[0m !"
+	echo -e "====================================="
 }
 
 
 #问询
 clear
 colorEcho ${GREEN} "##########################天龙私服安装#########################"
-colorEcho ${GREEN} "######################Powered by Soroke#######################"
-colorEcho ${GREEN} "#(1)端口密码配置(未配置使用默认值)                           #"
-colorEcho ${GREEN} "#(2)环境安装                                                 #"
-colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                    #"
-colorEcho ${GREEN} "#(4)关闭私服                                                 #"
-colorEcho ${GREEN} "#(5)重启私服                                                 #"
-colorEcho ${GREEN} "#(6)我要换端                                                 #"
-colorEcho ${GREEN} "#(7)修改配置/重新生成                                        #"
-colorEcho ${GREEN} "#(8)删除服务且删除项目                                       #"
-colorEcho ${GREEN} "#(0)退出脚本                                                 #"
-colorEcho ${GREEN} "######################Powered by Soroke#######################"
-colorEcho ${GREEN} "##############################################################"
+colorEcho ${GREEN} "######################Powered by Soroke########################"
+colorEcho ${GREEN} "#(1)端口密码配置(未配置使用默认值)                            #"
+colorEcho ${GREEN} "#(2)环境安装                                                  #"
+colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                                     #"
+colorEcho ${GREEN} "#(4)关闭私服                                                  #"
+colorEcho ${GREEN} "#(5)重启私服                                                  #"
+colorEcho ${GREEN} "#(6)我要换端                                                  #"
+colorEcho ${GREEN} "#(7)修改配置/重新生成                                         #"
+colorEcho ${GREEN} "#(8)删除服务且删除项目                                        #"
+colorEcho ${GREEN} "#(9)查看所有配置                                              #"
+colorEcho ${GREEN} "#(0)退出脚本                                                  #"
+colorEcho ${GREEN} "######################Powered by Soroke########################"
+colorEcho ${GREEN} "###############################################################"
 colorEcho_noline ${GREEN} "输入对应数字回车:"
 read chose
 
@@ -486,6 +550,9 @@ case $chose in
 	8)
 		stop_dockerCompose
 		rm -rf ${SERVER_DIR}
+		;;
+	9)
+		look_config
 		;;
 	*)
 		colorEcho ${FUCHSIA} "未知选项" && exit -1
