@@ -3,7 +3,7 @@
 
 sh
 ```
-yum install -y git && git clone git@github.com:Soroke/tlsf_docker.git .tlsf && /bin/bash .tlsf/tools/init.sh
+yum install -y git && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/init.sh
 ```
 
 sh
