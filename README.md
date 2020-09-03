@@ -12,6 +12,7 @@ yum install -y git vim && git clone https://github.com/Soroke/tlsf_docker.git .t
 yum install -y git vim && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
 ### 2、安装基础环境
+#####执行下面的命令
 ```shell
 tlbb
 ```
@@ -25,6 +26,7 @@ tlbb
     
 
 ### 3、启动服务
+#####执行下面的命令
 ```shell
 tlbb
 ```
