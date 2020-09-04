@@ -86,12 +86,12 @@ tlbb
 
 #### 10.1 portainer在线监控平台
 - portainer启动有一定的延迟，请在服务启动成功5分钟后访问
-- 1、访问http://IP:PORT, 输入8位数字密码，点击创建用户。
+- 1、访问portainer平台(平台地址执行第9项查看), 输入8位数字密码，点击创建用户。
 - 2、然后选择最左侧的LOCAL点击Connect确认进入系统.
 - 3、进入系统后选择local，然后选择左侧的容器，选择名字为“tlsf_server_1”的容器点击进入
 - 4、页面上容器状态下主要使用【统计】【控制台】，其中统计可以查看启动的进程和服务器占用情况。控制台可以直接连接容器执行命令
  ![image](https://raw.githubusercontent.com/Soroke/tlsf_docker/master/example_image/portainer_1.png)
  ![image](https://raw.githubusercontent.com/Soroke/tlsf_docker/master/example_image/portainer_2.png)
 #### 10.2 tomcat
-- 解压官网页面文件到指定目录,解压完成后直接访问http://IP:PORT (IP:部署私服的服务器IP PORT:第一步配置端口,默认为80)
+- 解压官网页面文件到指定目录,解压完成后直接访问tomcat平台(平台地址执行第9项查看)
 - 解压目录：1、服务启动后会提示解压路径。2、选择9查看解压目录
