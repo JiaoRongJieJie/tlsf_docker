@@ -8,6 +8,7 @@
 ### 部署完成后根据登陆网关端口和游戏网关端口配置登录器即可开始游戏🎉
 ### 
 # 使用说明
+#### 请使用root账号登录系统
 ### 1、获取所需代码
 ```bash
 yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc

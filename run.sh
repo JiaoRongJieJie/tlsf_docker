@@ -555,7 +555,8 @@ case $chose in
 	3)
 		if [[ -f "$SERVER_DIR/server/tlbb/run.sh" ]]; then
 			start_tlbb_server
-			colorEcho ${BLUE} "服务端已存在,启动完毕。建议访问portainer平台在线监控启动状态。"
+			colorEcho_noline ${BLUE} "服务端已存在,启动完毕。建议访问portainer平台在线监控启动状态。"
+			print_portainer_url
 		elif [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
 			unzip_server
 			modf_config
