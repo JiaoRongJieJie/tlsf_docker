@@ -14,6 +14,7 @@ TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
 
+
 #读取配置获取服务安装路径
 source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
 SERVER_DIR=${iniValue}
@@ -60,7 +61,7 @@ function replace_install_plugins() {
     mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
     wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
     yum makecache
-    PLUGINS="dos2unix epel-release yum-utils wget git vim zip unzip zlib zlib-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron crontabs"
+    PLUGINS="dos2unix epel-release yum-utils wget jq git vim zip unzip zlib zlib-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron crontabs"
     yum -y install ${PLUGINS} && yum -y update
 }
 
@@ -446,6 +447,16 @@ function look_config() {
 	server_port=${iniValue}
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server BILLING_PORT >/dev/null
 	billing_port=${iniValue}
+	
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT >/dev/null
+	portainer_port=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
+	tomcat_port=${iniValue}
+	
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	IP=${IP//\"/}
+
 	echo "====================================="
 	echo -e "\e[44m TLSF环境配置 \e[0m"
 	echo -e "====================================="
@@ -456,10 +467,51 @@ function look_config() {
 	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
 	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
 	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
-	echo -e "网站把域名解析到云服务器IP上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可访问。"
+	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
+	echo -e "portainer平台访问地址: :\e[44m http://${IP}:$portainer_port \e[0m "
+	echo -e "启用网站请把域名解析到IP:${IP}上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可。"
 	echo -e "====================================="
+	colorEcho ${GREEN} "服务状态"
+	echo "-------------------------------------"
+	colorEcho_noline ${GREEN} "容器组状态: :"
+	dockerCompose_startCount
+	dc_st=$?
+	if [ $dc_st -eq 5 ];then
+		echo -e "\e[44m 已启动 \e[0m "
+	else
+		echo -e "\e[45m 已关闭 \e[0m "
+	fi
+	
+	colorEcho_noline ${GREEN} "私服服务状态: :"
+	server_is_start
+	server_st=$?
+	if [ $server_st -eq 1 ];then
+		echo -e "\e[44m 已启动 \e[0m "
+	else
+		echo -e "\e[45m 已关闭 \e[0m "
+	fi
+	echo -e "-------------------------------------"
 }
 
+#portainer平台访问地址输出
+function print_portainer_url() {
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH portainer PORT >/dev/null
+	portainer_port=${iniValue}
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	IP=${IP//\"/}
+	echo -e "portainer平台访问地址: :\e[44m http://${IP}:$portainer_port \e[0m "
+}
+
+#tomcat平台访问地址输出
+function print_tomcat_url() {
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
+	tomcat_port=${iniValue}
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	IP=${IP//\"/}
+	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
+}
 
 #问询
 clear
@@ -503,12 +555,12 @@ case $chose in
 	3)
 		if [[ -f "$SERVER_DIR/server/tlbb/run.sh" ]]; then
 			start_tlbb_server
-			colorEcho ${BLUE} "服务端已存在,启动完毕。建议访问http://IP:81 在线监控启动状态"
+			colorEcho ${BLUE} "服务端已存在,启动完毕。建议访问portainer平台在线监控启动状态。"
 		elif [[ -f "/root/tlbb.tar.gz" ]] || [[ -f "/root/tlbb.zip" ]]; then
 			unzip_server
 			modf_config
 			start_tlbb_server
-			colorEcho ${BLUE} "私服启动完毕,建议访问http://IP:81 在线监控启动状态"
+			colorEcho ${BLUE} "私服启动完毕,建议访问portainer平台在线监控启动状态。"
 			look_config
 		else 
 			colorEcho ${FUCHSIA} "服务端文件不存在，或者位置上传错误，请上传服务端至【/root】目录下再来启动服务" && exit -1
@@ -533,7 +585,7 @@ case $chose in
 			case $is_start_server in
 				0)
 					start_tlbb_server
-					colorEcho ${BLUE} "新端服务已启动,建议访问http://IP:81 在线监控启动状态"
+					colorEcho ${BLUE} "新端服务已启动,建议访问portainer平台在线监控启动状态。"
 					;;
 				1)
 					exit -1
@@ -562,7 +614,7 @@ case $chose in
 				modf_config
 				start_dockerCompose
 				start_tlbb_server
-				colorEcho ${BLUE} "修改配置已加载完毕,服务已重新启动,建议访问http://IP:81 在线监控启动状态"
+				colorEcho ${BLUE} "修改配置已加载完毕,服务已重新启动,建议访问portainer平台在线监控启动状态。"
 				look_config
 				;;
 			1)
@@ -579,26 +631,6 @@ case $chose in
 		;;
 	9)
 		look_config
-		colorEcho ${GREEN} "服务状态"
-		echo "-------------------------------------"
-		colorEcho_noline ${GREEN} "容器组状态: :"
-		dockerCompose_startCount
-		dc_st=$?
-		if [ $dc_st -eq 5 ];then
-			echo -e "\e[44m 已启动 \e[0m "
-		else
-			echo -e "\e[44m 已关闭 \e[0m "
-		fi
-		
-		colorEcho_noline ${GREEN} "私服服务状态: :"
-		server_is_start
-		server_st=$?
-		if [ $server_st -eq 1 ];then
-			echo -e "\e[44m 已启动 \e[0m "
-		else
-			echo -e "\e[44m 已关闭 \e[0m "
-		fi
-		echo -e "-------------------------------------"
 		;;
 	*)
 		colorEcho ${FUCHSIA} "未知选项" && exit -1
