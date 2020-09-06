@@ -142,16 +142,18 @@ function init_env() {
 	echo "PORTAINER_PORT=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
 	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
-	#配置所用2个镜像的名称
+	#配置所用2个镜像的名称和版本号
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
 	echo "TLBB_SERVER_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
 	echo "TLBBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	#source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
-	#echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image IMAGE_VERSION >/dev/null
+	echo "IMAGE_VERSION=${iniValue}" >> ${DIR}/.env
 	
 	echo "SERVER_DIR=${SERVER_DIR}" >> ${DIR}/.env
 	echo "PORTAINER_CN=${SERVER_DIR}/Portainer-CN" >> ${DIR}/.env
+	
+
 }
 
 #解压服务包
@@ -306,29 +308,33 @@ function build_image() {
 	#修改host为docker内部标识
 	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini Default SERVER tlbbdb >/dev/null
 	source ${DIR}/tools/readIni.sh -w ${DIR}/docker/server/config/odbc.ini tlbbdb SERVER tlbbdb >/dev/null
+	
+	#获取镜像的版本号
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image IMAGE_VERSION >/dev/null
+	image_version=${iniValue}
 
 	#判断镜像是否存在如果不存在，默认为首次生成，打印生成日志
 	tlbb_server_count=`docker image ls tlbb_server |wc -l`
 	if [ $tlbb_server_count -ge 2 ];then
 	 	#tlbb_server 镜像构建(可能耗时较长)
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server > /dev/null 2>&1 
+		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/server > /dev/null 2>&1 
 		#tlbbdb数据库
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb > /dev/null 2>&1 
+		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/tlbbdb > /dev/null 2>&1 
 		#webdb数据库
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb > /dev/null 2>&1
+		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/webdb > /dev/null 2>&1
 	else
 		#tlbb_server 镜像构建(可能耗时较长)
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/server
+		docker build -f ${DIR}/docker/server/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/server
 		#tlbbdb数据库
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/tlbbdb
+		docker build -f ${DIR}/docker/tlbbdb/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/tlbbdb
 		#webdb数据库
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
-		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:v0.1 ${DIR}/docker/webdb
+		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/webdb
 	fi
 
 	

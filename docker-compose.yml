@@ -3,7 +3,7 @@ version: '3'
 services:
   # Game server
   server:
-    image: ${TLBB_SERVER_IMAGE_NAME}:v0.1
+    image: ${TLBB_SERVER_IMAGE_NAME}:${IMAGE_VERSION}
     volumes:
       - "${SERVER_DIR}/server:/home"
       - "${SERVER_DIR}/billing:/opt"
@@ -16,7 +16,7 @@ services:
       - tlbbdb
   # tlbb database
   tlbbdb:
-    image: ${TLBBDB_IMAGE_NAME}:v0.1
+    image: ${TLBBDB_IMAGE_NAME}:${IMAGE_VERSION}
     volumes:
       - "${SERVER_DIR}/tlbbdb/mysql:/var/lib/mysql"
     ports:
