@@ -344,7 +344,7 @@ function build_image() {
 
 #检查镜像是否为启动状态
 function server_is_start() {
-	var=`cd ${DIR} && docker-compose ps server`
+	var=`cd ${DIR} && docker-compose ps tlbb_server`
 	array=(${var// /})
 	st=0
 	for me in ${array[@]}

@@ -4,6 +4,7 @@ services:
   # Game server
   server:
     image: ${TLBB_SERVER_IMAGE_NAME}:${IMAGE_VERSION}
+    container_name: tlbb_server
     volumes:
       - "${SERVER_DIR}/server:/home"
       - "${SERVER_DIR}/billing:/opt"
@@ -17,6 +18,7 @@ services:
   # tlbb database
   tlbbdb:
     image: ${TLBBDB_IMAGE_NAME}:${IMAGE_VERSION}
+    container_name: tlbb_db
     volumes:
       - "${SERVER_DIR}/tlbbdb/mysql:/var/lib/mysql"
     ports:
@@ -28,6 +30,7 @@ services:
   # docker管理监控
   portainer:
     image: portainer/portainer:latest
+    container_name: portainer
     ports:
       - "${PORTAINER_PORT}:9000" 
     volumes:
@@ -37,6 +40,7 @@ services:
   # 前端页面(官网)
   tomcat:
     image: tomcat:7
+    container_name: tomcat
     volumes:
       - "${SERVER_DIR}/tomcat:/usr/local/tomcat/webapps/ROOT"
     ports:
