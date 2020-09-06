@@ -11,11 +11,11 @@
 #### 请使用root账号登录系统
 ### 1、获取所需代码
 ```shell
-yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.shellrc
+yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
 #### 或者
 ```shell
-yum install -y git vim lrzsz && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.shellrc
+yum install -y git vim lrzsz && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
 ### 2、安装基础环境
 ##### 执行下面的命令
