@@ -14,8 +14,7 @@ services:
     restart: always
     links:
       - tlbbdb
-      - webdb
-  # Game database
+  # tlbb database
   tlbbdb:
     image: ${TLBBDB_IMAGE_NAME}:v0.1
     volumes:
@@ -26,18 +25,6 @@ services:
       MYSQL_ROOT_PASSWORD: ${TLBB_MYSQL_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
       MYSQL_DATABASE: "tlbbdb"
-    restart: always
-  # Web database
-  webdb:
-    image: ${WEBDB_IMAGE_NAME}:v0.1
-    volumes:
-    - "${SERVER_DIR}/webdb/mysql:/var/lib/mysql"
-    ports:
-    - "${WEB_MYSQL_PORT}:3306"
-    environment:
-      MYSQL_ROOT_PASSWORD: ${WEB_MYSQL_PASSWORD}
-      MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_DATABASE: "web"
     restart: always
   # docker管理监控
   portainer:
