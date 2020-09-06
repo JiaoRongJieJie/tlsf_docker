@@ -122,12 +122,12 @@ function init_env() {
 		rm -rf ${DIR}/.env
 	fi
 	
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
-	echo "WEB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
+	#echo "WEB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	echo "TLBB_MYSQL_PORT=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
-	echo "WEB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
+	#echo "WEB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	echo "TLBB_MYSQL_PASSWORD=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
@@ -142,13 +142,13 @@ function init_env() {
 	echo "PORTAINER_PORT=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tomcat PORT >/dev/null
 	echo "TOMCAT_PORT=${iniValue}" >> ${DIR}/.env
-	#配置所用3个镜像的名称
+	#配置所用2个镜像的名称
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBB_SERVER_IMAGE_NAME >/dev/null
 	echo "TLBB_SERVER_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image TLBBDB_IMAGE_NAME >/dev/null
 	echo "TLBBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
-	echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image WEBDB_IMAGE_NAME >/dev/null
+	#echo "WEBDB_IMAGE_NAME=${iniValue}" >> ${DIR}/.env
 	
 	echo "SERVER_DIR=${SERVER_DIR}" >> ${DIR}/.env
 	echo "PORTAINER_CN=${SERVER_DIR}/Portainer-CN" >> ${DIR}/.env
@@ -202,12 +202,12 @@ function modf_config() {
 	#读取所有配置
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
-	webdb_password=${iniValue}
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
+	#webdb_password=${iniValue}
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	tlbbdb_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
-	webdb_port=${iniValue}
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
+	#webdb_port=${iniValue}
 	
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
 	login_port=${iniValue}
@@ -224,9 +224,9 @@ function modf_config() {
 	  elif [[ "$line" =~ "db_port" ]];then
 		sed -i "s/${line}/\"db_port\": 3306,/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_host" ]];then
-		sed -i "s/${line}/\"db_host\": \"webdb\",/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_host\": \"tlbbdb\",/g" $SERVER_DIR/billing/config.json
 	  elif [[ "$line" =~ "db_password" ]];then
-		sed -i "s/${line}/\"db_password\": \"${webdb_password}\",/g" $SERVER_DIR/billing/config.json
+		sed -i "s/${line}/\"db_password\": \"${tlbbdb_password}\",/g" $SERVER_DIR/billing/config.json
 	  fi
 	done < $SERVER_DIR/billing/config.json
 	#修改换行结尾为unix的RF
@@ -333,7 +333,7 @@ function build_image() {
 
 	
 	
-	colorEcho ${GREEN} "私服服务/tlbbsb数据库/webdb数据库三个镜像构建完成。。。"
+	colorEcho ${GREEN} "私服服务和数据库两个个镜像构建完成。。。"
 }
 
 #检查镜像是否为启动状态
@@ -373,6 +373,7 @@ function start_dockerCompose() {
 	if [ $dc_sc -eq 0 ];then
 		#启动镜像
 		cd ${DIR} && docker-compose up -d 
+		sleep 10
 		colorEcho ${GREEN} "容器组已启动。。"
 	else
 		colorEcho ${GREEN} "容器组已经启动。。"
@@ -434,12 +435,12 @@ function look_config() {
 	#读取所有配置
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
-	webdb_password=${iniValue}
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
+	#webdb_password=${iniValue}
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
 	tlbbdb_port=${iniValue}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
-	webdb_port=${iniValue}
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PORT >/dev/null
+	#webdb_port=${iniValue}
 	
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
 	login_port=${iniValue}
@@ -460,10 +461,11 @@ function look_config() {
 	echo "====================================="
 	echo -e "\e[44m TLSF环境配置 \e[0m"
 	echo -e "====================================="
-	echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m "
-	echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m "
-	echo -e "游戏数据库端口: :\e[44m $tlbbdb_port \e[0m "
-	echo -e "账号数据库密码: :\e[44m $tlbbdb_password \e[0m "
+	#echo -e "账号数据库端口: :\e[44m $webdb_port \e[0m "
+	#echo -e "账号数据库密码: :\e[44m $webdb_password \e[0m "
+	echo -e "数据库IP: :\e[44m $IP \e[0m "
+	echo -e "数据库端口: :\e[44m $tlbbdb_port \e[0m "
+	echo -e "数据库密码: :\e[44m $tlbbdb_password \e[0m "
 	echo -e "Billing端口: :\e[44m $billing_port \e[0m "
 	echo -e "登录网关端口: :\e[44m $login_port \e[0m "
 	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
@@ -476,7 +478,7 @@ function look_config() {
 	colorEcho_noline ${GREEN} "容器组状态: :"
 	dockerCompose_startCount
 	dc_st=$?
-	if [ $dc_st -eq 5 ];then
+	if [ $dc_st -eq 4 ];then
 		echo -e "\e[44m 已启动 \e[0m "
 	else
 		echo -e "\e[45m 已关闭 \e[0m "
