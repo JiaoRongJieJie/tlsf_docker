@@ -10,22 +10,22 @@
 # 使用说明
 #### 请使用root账号登录系统
 ### 1、获取所需代码
-```bash
-yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
+```shell
+yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.shellrc
 ```
 #### 或者
-```bash
-yum install -y git vim lrzsz && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
+```shell
+yum install -y git vim lrzsz && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.shellrc
 ```
 ### 2、安装基础环境
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 
 - 根据提示    输入1回车 进入修改本次部署的配置，包括（数据库端口、密码、游戏服务的端口以及其他项配置）
 
-```bash
+```shell
 输入'i'进入编辑模式，编辑配置项,编辑完成后输入':wq'保存配置
 ```
 ![image](https://raw.githubusercontent.com/Soroke/tlsf_docker/master/example_image/run_1.png)
@@ -34,7 +34,7 @@ tlbb
 ![image](https://raw.githubusercontent.com/Soroke/tlsf_docker/master/example_image/run_2.png)
 ### 3、启动服务
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入3    开始启动服务。(注：如果未上传服务端文件按照提示上传即可;格式仅支持tar.gz和zip)
@@ -42,7 +42,7 @@ tlbb
 
 ### 4、关闭
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入4    执行关闭私服操作
@@ -50,7 +50,7 @@ tlbb
 
 ### 5、重启
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入5    私服服务重启
@@ -58,7 +58,7 @@ tlbb
  
 ### 6、换端
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入6    开始执行换端操作。(注：如果未上传服务端文件按照提示上传即可;格式仅支持tar.gz和zip)
@@ -66,7 +66,7 @@ tlbb
   
 ### 7、重新生成
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入7    修改配置后或者想要重新生成所有服务和镜像选择此项
@@ -74,7 +74,7 @@ tlbb
    
 ### 8、删除
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入8    关闭服务,关闭镜像组、删除服务端和所有页面(如果想要再次运行服务可执行步骤3)
@@ -82,7 +82,7 @@ tlbb
 
 ### 9、查看配置和服务状态
 ##### 执行下面的命令
-```bash
+```shell
 tlbb
 ```
 - 输入9    查看所有配置和服务状态
