@@ -24,7 +24,6 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: ${TLBB_MYSQL_PASSWORD}
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"
-      MYSQL_DATABASE: "tlbbdb"
     restart: always
   # docker管理监控
   portainer:

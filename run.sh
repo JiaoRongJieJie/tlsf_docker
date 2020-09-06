@@ -373,7 +373,6 @@ function start_dockerCompose() {
 	if [ $dc_sc -eq 0 ];then
 		#启动镜像
 		cd ${DIR} && docker-compose up -d 
-		sleep 10
 		colorEcho ${GREEN} "容器组已启动。。"
 	else
 		colorEcho ${GREEN} "容器组已经启动。。"
