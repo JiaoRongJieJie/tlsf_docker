@@ -254,6 +254,13 @@ function modf_config() {
 		sed -i "s/Port0=15680/Port0=${server_port}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
 	fi
 	
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	IP=${IP//\"/}
+	#替换Server0的角色转发IP为服务器的真实IP
+	sed -i "s/IP0=127.123.321.123/IP0=${IP}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
+	
+	
 	#解压后tlbb服务文件地址
 	#tlbb_path=$SERVER_DIR/server/tlbb
 	#config_source=${DIR}/config/tlbb_config
