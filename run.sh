@@ -215,6 +215,10 @@ function modList() {
 	sed -i "s/127.0.0.1/${game_ip}/g" /tmp/tmp.txt
 	sed -i "s/7377/${game_port}/g" /tmp/tmp.txt
 	iconv -f=UTF-8 -t=GBK /tmp/tmp.txt > /tmp/serverlist.txt
+	#修改列表文件的换行符格式
+	sed -i ":a;N;s/\n/HHFTHZW/g;ta" /tmp/serverlist.txt
+	sed -i "s/HHFTHZW/\r\n/g" /tmp/serverlist.txt
+	
 	if [ -d "$SERVER_DIR/tomcat" ];then
 		rm -rf $SERVER_DIR/tomcat/serverlist.txt
 	else
