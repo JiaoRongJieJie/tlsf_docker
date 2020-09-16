@@ -215,9 +215,13 @@ function modList() {
 	sed -i "s/127.0.0.1/${game_ip}/g" /tmp/tmp.txt
 	sed -i "s/7377/${game_port}/g" /tmp/tmp.txt
 	iconv -f=UTF-8 -t=GBK /tmp/tmp.txt > /tmp/serverlist.txt
-	rm -rf $SERVER_DIR/tomcat/serverlist.txt
-	cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
-	cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
+	if [ -d "$SERVER_DIR/tomcat" ];then
+		rm -rf $SERVER_DIR/tomcat/serverlist.txt
+	else
+		mkdir -p $SERVER_DIR/tomcat
+		cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
+		cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
+	fi
 }
 
 
