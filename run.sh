@@ -199,8 +199,32 @@ function unzip_server() {
 	fi
 }
 
+#修改游戏的列表
+function modList() {
+	listPath=${DIR}/config/serverlist.txt
+	iconv -f=GBK -t=UTF-8 $listPath > /tmp/tmp.txt
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
+	game_name=${iniValue}
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	game_ip=${IP//\"/}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
+	game_port=${iniValue}
+	
+	sed -i "s/测试天龙/${game_name}/g" /tmp/tmp.txt
+	sed -i "s/127.0.0.1/${game_ip}/g" /tmp/tmp.txt
+	sed -i "s/7377/${game_port}/g" /tmp/tmp.txt
+	iconv -f=UTF-8 -t=GBK /tmp/tmp.txt > /tmp/serverlist.txt
+	rm -rf $SERVER_DIR/tomcat/serverlist.txt
+	cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
+	cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
+}
+
+
 #修改配置文件为指定内容
 function modf_config() {
+
+	modList
 	#读取所有配置
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
 	tlbbdb_password=${iniValue}
@@ -260,39 +284,7 @@ function modf_config() {
 	#替换Server0的角色转发IP为服务器的真实IP
 	sed -i "s/IP0=127.123.321.123/IP0=${IP}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
 	
-	
-	#解压后tlbb服务文件地址
-	#tlbb_path=$SERVER_DIR/server/tlbb
-	#config_source=${DIR}/config/tlbb_config
-	#替换ServerInfo.ini
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing Port0 ${billing_port}
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 Port0 ${server_port}
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 Port0 ${login_port}
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Billing IP0 127.0.0.1
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server0 IP0 127.0.0.1
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ServerInfo.ini Server1 IP0 127.0.0.1
-	
-	
-	#替换LoginInfo.ini
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPort 3306
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBPassword ${tlbbdb_password}
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/LoginInfo.ini System DBIP $TLBBDB_COMPOSE_NAME
-	
-	#替换ShareMemInfo.ini
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPort 3306
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBPassword ${tlbbdb_password}
-	#source ${DIR}/tools/readIni.sh -w ${config_source}/ShareMemInfo.ini System DBIP tlbbdb
-	
-	#while read line
-	#do
-	#  if [[ "$line" =~ "DBIP" ]];then
-	#	sed -i "s/${line}/DBIP=${TLBBDB_COMPOSE_NAME}\t\t;数据库ip/g" ${config_source}/ShareMemInfo.ini
-	#  elif [[ "$line" =~ "DBPort" ]];then
-	#	sed -i "s/${line}/DBPort=3306\t\t;数据库端口/g" ${config_source}/ShareMemInfo.ini
-	#  elif [[ "$line" =~ "DBPassword" ]];then
-	#	sed -i "s/${line}/DBPassword=${tlbbdb_password}\t\t;密码/g" ${config_source}/ShareMemInfo.ini
-	#  fi
-	#done < ${config_source}/ShareMemInfo.ini
+
 	
 	#复制修改完成的文件到TLBB服务端
 	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
@@ -351,7 +343,7 @@ function build_image() {
 
 #检查镜像是否为启动状态
 function server_is_start() {
-	var=`cd ${DIR} && docker-compose ps tlbb_server`
+	var=`cd ${DIR} && docker-compose ps server`
 	array=(${var// /})
 	st=0
 	for me in ${array[@]}
@@ -443,6 +435,7 @@ function stop_tlbb_server(){
 	fi
 }
 
+
 function look_config() {
 	#读取所有配置
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
@@ -483,6 +476,8 @@ function look_config() {
 	echo -e "游戏网关端口: :\e[44m $server_port \e[0m "
 	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
 	echo -e "portainer平台访问地址: :\e[44m http://${IP}:$portainer_port \e[0m "
+	echo -e "登陆器配置列表地址: :\e[44m http://${IP}:$tomcat_port/serverlist.txt \e[0m "
+	echo -e "登陆器配置器下载地址: :\e[44m http://${IP}:$tomcat_port/dlpzq.exe \e[0m "
 	echo -e "启用网站请把域名解析到IP:${IP}上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可。"
 	echo -e "====================================="
 	colorEcho ${GREEN} "服务状态"
@@ -525,6 +520,26 @@ function print_tomcat_url() {
 	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
 	IP=${IP//\"/}
 	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
+}
+
+#修改游戏的列表
+function modList() {
+	listPath = ${DIR}/config/serverlist.txt
+	iconv -f=GBK -t=UTF-8 $listPath > /tmp/serverlist.txt
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
+	game_name=${iniValue}
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	game_ip=${IP//\"/}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
+	game_port=${iniValue}
+	
+	sed -i "s/测试天龙/${game_name}/g" /tmp/serverlist.txt
+	sed -i "s/127.0.0.1/${game_ip}/g" /tmp/serverlist.txt
+	sed -i "s/7377/${game_port}/g" /tmp/serverlist.txt
+	iconv -f=UTF-8 -t=GBK /tmp/serverlist.txt > $listPath
+	rm -rf $SERVER_DIR/tomcat/serverlist.txt
+	cp ${listPath} $SERVER_DIR/tomcat/
 }
 
 #问询
