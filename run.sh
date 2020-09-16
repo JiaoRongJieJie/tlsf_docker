@@ -522,26 +522,6 @@ function print_tomcat_url() {
 	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
 }
 
-#修改游戏的列表
-function modList() {
-	listPath = ${DIR}/config/serverlist.txt
-	iconv -f=GBK -t=UTF-8 $listPath > /tmp/serverlist.txt
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
-	game_name=${iniValue}
-	#获取本机真实IP
-	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
-	game_ip=${IP//\"/}
-	source ${DIR}/tools/readIni.sh $CONFIG_PATH tlbb_server LOGIN_PORT >/dev/null
-	game_port=${iniValue}
-	
-	sed -i "s/测试天龙/${game_name}/g" /tmp/serverlist.txt
-	sed -i "s/127.0.0.1/${game_ip}/g" /tmp/serverlist.txt
-	sed -i "s/7377/${game_port}/g" /tmp/serverlist.txt
-	iconv -f=UTF-8 -t=GBK /tmp/serverlist.txt > $listPath
-	rm -rf $SERVER_DIR/tomcat/serverlist.txt
-	cp ${listPath} $SERVER_DIR/tomcat/
-}
-
 #问询
 clear
 colorEcho ${GREEN} "##########################天龙私服安装#########################"
