@@ -203,20 +203,14 @@ function unzip_server() {
 	if [[ -f "${SERVER_DIR}/tomcat/index.html" ]] && [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
 		colorEcho ${GREEN} "官网文件已存在,不做处理。。。"
 	elif [ -f "${GW_PATH}" ]; then
-		rm -rf $SERVER_DIR/tomcat/gg $SERVER_DIR/tomcat/index.html $SERVER_DIR/tomcat/static && unzip $GW_PATH -d $SERVER_DIR/tomcat/ > /dev/null 2>&1 
+		rm -rf $SERVER_DIR/tomcat/gg $SERVER_DIR/tomcat/index.html $SERVER_DIR/tomcat/static && unzip -d $SERVER_DIR/tomcat/ $GW_PATH > /dev/null 2>&1 
 		chown -R root:root $SERVER_DIR/tomcat
 		
 		#修改官网index文件中的游戏名称
 		source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
 		game_name=${iniValue}
-		iconv -f=GBK -t=UTF-8 $SERVER_DIR/tomcat/index.html > /tmp/index.txt
-		sed -i "s/紫襟天龙/${game_name}/g" /tmp/index.txt
-		sed -i "s/紫襟天龍/${game_name}/g" /tmp/index.txt
-		iconv -f=UTF-8 -t=GBK /tmp/index.txt > /tmp/index.html
-		#修改文件的换行符格式
-		sed -i ":a;N;s/\n/HHFTHZW/g;ta" /tmp/index.html
-		sed -i "s/HHFTHZW/\r\n/g" /tmp/index.html
-		rm -rf $SERVER_DIR/tomcat/index.html && mv /tmp/index.html $SERVER_DIR/tomcat/
+		sed -i "s/紫襟天龙/${game_name}/g" $SERVER_DIR/tomcat/index.html
+		sed -i "s/紫襟天龍/${game_name}/g" $SERVER_DIR/tomcat/index.html
 		colorEcho ${GREEN} "官网文件解压完成。。。"
 	else
 		colorEcho ${GREEN} "官网文件文件不存在,请重新下载该项目"
@@ -245,6 +239,8 @@ function modList() {
 	
 	if [ -d "$SERVER_DIR/tomcat" ];then
 		rm -rf $SERVER_DIR/tomcat/serverlist.txt
+		cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
+		cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
 	else
 		mkdir -p $SERVER_DIR/tomcat
 		cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
