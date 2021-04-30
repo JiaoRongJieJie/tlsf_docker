@@ -200,21 +200,21 @@ function unzip_server() {
 	fi
 	
 	#官网
-	if [[ -f "${SERVER_DIR}/tomcat/index.html" ]] && [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
-		colorEcho ${GREEN} "官网文件已存在,不做处理。。。"
-	elif [ -f "${GW_PATH}" ]; then
-		rm -rf $SERVER_DIR/tomcat/gg $SERVER_DIR/tomcat/index.html $SERVER_DIR/tomcat/static && unzip -d $SERVER_DIR/tomcat/ $GW_PATH > /dev/null 2>&1 
-		chown -R root:root $SERVER_DIR/tomcat
+	#if [[ -f "${SERVER_DIR}/tomcat/index.html" ]] && [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
+	#	colorEcho ${GREEN} "官网文件已存在,不做处理。。。"
+	#elif [ -f "${GW_PATH}" ]; then
+	#	rm -rf $SERVER_DIR/tomcat/gg $SERVER_DIR/tomcat/index.html $SERVER_DIR/tomcat/static && unzip -d $SERVER_DIR/tomcat/ $GW_PATH > /dev/null 2>&1 
+	#	chown -R root:root $SERVER_DIR/tomcat
 		
 		#修改官网index文件中的游戏名称
-		source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
-		game_name=${iniValue}
-		sed -i "s/紫襟天龙/${game_name}/g" $SERVER_DIR/tomcat/index.html
-		sed -i "s/紫襟天龍/${game_name}/g" $SERVER_DIR/tomcat/index.html
-		colorEcho ${GREEN} "官网文件解压完成。。。"
-	else
-		colorEcho ${GREEN} "官网文件文件不存在,请重新下载该项目"
-	fi
+	#	source ${DIR}/tools/readIni.sh $CONFIG_PATH game NAME >/dev/null
+	#	game_name=${iniValue}
+	#	sed -i "s/紫襟天龙/${game_name}/g" $SERVER_DIR/tomcat/index.html
+	#	sed -i "s/紫襟天龍/${game_name}/g" $SERVER_DIR/tomcat/index.html
+	#	colorEcho ${GREEN} "官网文件解压完成。。。"
+	#else
+	#	colorEcho ${GREEN} "官网文件文件不存在,请重新下载该项目"
+	#fi
 }
 
 #修改游戏的列表
@@ -513,7 +513,7 @@ function look_config() {
 	colorEcho_noline ${GREEN} "容器组状态: :"
 	dockerCompose_startCount
 	dc_st=$?
-	if [ $dc_st -eq 4 ];then
+	if [ $dc_st -ge 4 ];then
 		echo -e "\e[44m 已启动 \e[0m "
 	else
 		echo -e "\e[45m 已关闭 \e[0m "
