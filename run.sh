@@ -466,7 +466,13 @@ function modf_config() {
 	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
 	rm -rf ${DIR}/config/tlbb_config/*.ini
 	#修改run脚本
-	sed -i 's/exit$/tail -f \/dev\/null/g' $SERVER_DIR/server/tlbb/run.sh
+	tlbb_run=$(cat $SERVER_DIR/server/tlbb/run.sh)
+	if [[ $tlbb_run =~ "exit" ]]; then
+		sed -i 's/exit$/tail -f \/dev\/null/g' $SERVER_DIR/server/tlbb/run.sh
+	else
+		echo "tail -f /dev/null" >> SERVER_DIR/server/tlbb/run.sh
+	fi
+	#sed -i 's/exit$/tail -f \/dev\/null/g' $SERVER_DIR/server/tlbb/run.sh
 }
 
 #本地生成镜像
