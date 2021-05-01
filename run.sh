@@ -114,6 +114,7 @@ function replace_centos_sources() {
 	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
 	if [[ $1 -eq 8 ]]; then
 		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+		sed -i 's/$releasever/8/g' /etc/yum.repos.d/CentOS-Base.repo
 	elif [[ $1 -eq 7 ]]; then
 		wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
 	else
@@ -167,8 +168,8 @@ function install_docker() {
 		#添加软件源信息
 		sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
 		#更新并安装 Docker-CE
-		sudo yum makecache fast
-		sudo yum -y install docker-ce docker-compose
+		sudo yum makecache
+		sudo yum -y install docker-ce
 		#service docker start
 	elif [[ "$1" == "debian" ]]; then
 		apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common -y
@@ -177,7 +178,7 @@ function install_docker() {
 		# 向 source.list 中添加 Docker CE 软件源
 		add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable"
 		apt-get update -y
-		apt-get install docker-ce docker-compose -y
+		apt-get install docker-ce -y
 		
 	elif [[ "$1" == "ubuntu" ]]; then
 		#statements
@@ -185,10 +186,10 @@ function install_docker() {
 		curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
 		add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
 		apt-get -y update
-		apt-get -y install docker-ce docker-compose
+		apt-get -y install docker-ce
 	fi
 	
-	#cp $DOCKER_COMPOSR /usr/bin/ && chmod +x /usr/bin/docker-compose
+	cp $DOCKER_COMPOSR /usr/bin/ && chmod +x /usr/bin/docker-compose
 	systemctl start docker
 	#阿里云镜像加速
 	sudo mkdir -p /etc/docker
@@ -209,7 +210,7 @@ function system_check() {
     print_ok "当前系统为 Centos ${VERSION_ID} ${VERSION}"
     INS="yum install -y"
     #替换源
-    replace_centos_sources
+    replace_centos_sources ${VERSION_ID}
     judge "替换为阿里源"
     $INS crontabs ntp
     
@@ -726,9 +727,9 @@ case $chose in
 	2)
 		startTime=`date +%s`
 		is_root
-		init_clock
 		install_swap
 		system_check
+		init_clock
 		build_image
 		init_env
 		start_dockerCompose
