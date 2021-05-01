@@ -17,6 +17,7 @@ TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
 GW_PATH="${DIR}/tools/gw.zip"
+GG_PATH="${DIR}/tools/gg.zip"
 DOCKER_COMPOSR="${DIR}/tools/docker-compose"
 
 #######color code########
@@ -299,7 +300,7 @@ function unzip_server() {
 	fi
 	#billing
 	if [[ -f "$SERVER_DIR/billing/billing" ]] && [[ -f "$SERVER_DIR/billing/config.json" ]];then
-		print_error "billing服务已存在,不做处理。。。"
+		print_ok "billing服务已存在,不做处理。。。"
 	elif [ -f "$BILLING_PATH" ];then
 		unzip $BILLING_PATH -d $SERVER_DIR/billing > /dev/null 2>&1
 		chmod -R a+x $SERVER_DIR/billing/*
@@ -329,6 +330,17 @@ function unzip_server() {
 		print_ok "Portainer-CN 汉化包解压完成。。。"
 	else
 		print_error "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
+	fi
+	
+	#公告
+	if [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
+		print_ok "公告已存在,不做处理。。。"
+	elif [ -f "${GG_PATH}" ]; then
+		rm -rf $SERVER_DIR/tomcat/gg && unzip -d $SERVER_DIR/tomcat/ $GG_PATH > /dev/null 2>&1 
+		chown -R root:root $SERVER_DIR/tomcat
+		print_ok "公告解压完成。。。"
+	else
+		print_error "${GG_PATH}公告文件不存在,请重新下载该项目"
 	fi
 	
 	#官网
@@ -372,11 +384,11 @@ function modList() {
 	if [ -d "$SERVER_DIR/tomcat" ];then
 		rm -rf $SERVER_DIR/tomcat/serverlist.txt
 		cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
-		cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
+		cp ${DIR}/tools/dlpzq.rar $SERVER_DIR/tomcat/
 	else
 		mkdir -p $SERVER_DIR/tomcat
 		cp /tmp/serverlist.txt $SERVER_DIR/tomcat/
-		cp ${DIR}/tools/dlpzq.exe $SERVER_DIR/tomcat/
+		cp ${DIR}/tools/dlpzq.rar $SERVER_DIR/tomcat/
 	fi
 }
 
@@ -637,7 +649,7 @@ function look_config() {
 	echo -e "tomcat平台访问地址: :\e[44m http://${IP}:$tomcat_port \e[0m "
 	echo -e "portainer平台访问地址: :\e[44m http://${IP}:$portainer_port \e[0m "
 	echo -e "登陆器配置列表地址: :\e[44m http://${IP}:$tomcat_port/serverlist.txt \e[0m "
-	echo -e "登陆器配置器下载地址: :\e[44m http://${IP}:$tomcat_port/dlpzq.exe \e[0m "
+	echo -e "登陆器配置器下载地址: :\e[44m http://${IP}:$tomcat_port/dlpzq.rar \e[0m "
 	echo -e "启用网站请把域名解析到IP:${IP}上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可。"
 	echo -e "====================================="
 	print_ok "服务状态"
