@@ -1,2 +1,2 @@
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
-echo "alias tlbb=\"sh ${DIR}/run.sh\"" >> ~/.bashrc
+echo "alias tlbb=\"bash ${DIR}/run.sh\"" >> ~/.bashrc

@@ -85,7 +85,7 @@ function init_clock(){
     \cp -a -r /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     echo 'init system time..'
     ntpdate 0.asia.pool.ntp.org
-    judge "同步服务器时间"
+    print_ok "同步服务器时间"
     hwclock -w
 }
 
