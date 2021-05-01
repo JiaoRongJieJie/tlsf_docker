@@ -203,7 +203,7 @@ function system_check() {
         /etc/yum.repos.d/CentOS-*.repo
     judge "替换为清华源"
     yum makecache
-    $INS crontabs
+    $INS crontabs ntp
     
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
     print_ok "当前系统为 Debian ${VERSION_ID} ${VERSION}"
@@ -211,14 +211,14 @@ function system_check() {
     #替换源
     replace_debian_sources $VERSION_CODENAME
     judge "替换为阿里源"
-    $INS cron
+    $INS cron ntpdate
   elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
     print_ok "当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}"
     INS="apt install -y"
     #替换源
     replace_ubuntu_sources $VERSION_CODENAME
     judge "替换为阿里源"
-    $INS cron
+    $INS cron ntpdate
   else
     print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
     exit 1
@@ -237,7 +237,7 @@ function system_check() {
   	judge "docker和docker-compose安装"
   fi
   
-  $INS dbus wget jq git vim zip unzip lsof ntpdate
+  $INS dbus wget jq git vim zip unzip lsof
 
   # 关闭各类防火墙
   systemctl stop firewalld
