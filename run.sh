@@ -7,8 +7,8 @@
 #====================================================
 
 #设置环境变量
-PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH
-export $PATH
+export PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+stty erase ^?
 
 #配置文件和安装包
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
