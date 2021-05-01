@@ -108,6 +108,21 @@ function install_swap() {
 	fi
 }
 
+#替换centos系统源为阿里源
+function replace_centos_sources() {
+	#备份源
+	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+	if [[ $1 -eq 8 ]]; then
+		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+	elif [[ $1 -eq 7 ]]; then
+		wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+	else
+		print_error "系统不支持，centos最高支持centos7"
+	fi
+	yum makecache
+}
+
+
 #替换debian系统源为阿里源
 function replace_debian_sources() {
 	#备份源
@@ -193,16 +208,9 @@ function system_check() {
   if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
     print_ok "当前系统为 Centos ${VERSION_ID} ${VERSION}"
     INS="yum install -y"
-
-    #备份源镜像
-    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-    #更换为清华源
-    sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-        -e 's|^#baseurl=http://mirror.centos.org|baseurl=https://mirrors.tuna.tsinghua.edu.cn|g' \
-        -i.bak \
-        /etc/yum.repos.d/CentOS-*.repo
-    judge "替换为清华源"
-    yum makecache
+    #替换源
+    replace_centos_sources
+    judge "替换为阿里源"
     $INS crontabs ntp
     
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
@@ -229,13 +237,8 @@ function system_check() {
   fi
 
   #安装docker和一些所需工具
-  docker_version=`docker --version`
-  if [[ $docker_version =~ "Docker version" ]]; then
-  	print_ok "docker服务已安装"
-  else
-  	install_docker ${ID}
-  	judge "docker和docker-compose安装"
-  fi
+  install_docker ${ID}
+  judge "docker和docker-compose安装"
   
   $INS dbus wget jq git vim zip unzip lsof
 
