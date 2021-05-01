@@ -1,6 +1,6 @@
 # tlsf_docker
 ### 轻松部署某大型网游天X八部私服🎉
-### 仅支持centos7及以上的64位操作系统，其他系统未测试🎉
+### 支持Debian 9+/Ubuntu 18.04+/Centos 7+🎉
 ### 实测腾讯云1H2G1M 50G,运行稳定🎉
 ### 集成[liuguangw](https://github.com/liuguangw)的billing认证,免去配置billing认证过程,无需注册直接登录在线注册🎉
 ### 集成tomcat,解压官网文件到指定目录，官网即刻搭建完毕🎉
@@ -11,11 +11,11 @@
 #### 请使用root账号登录系统
 ### 1、获取所需代码
 ```shell
-yum install -y git vim lrzsz && git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
+git clone https://github.com/Soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
 #### 或者
 ```shell
-yum install -y git vim lrzsz && git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
+git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && sh .tlsf/.init && source ~/.bashrc
 ```
 ### 2、安装基础环境
 ##### 执行下面的命令

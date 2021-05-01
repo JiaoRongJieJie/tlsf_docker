@@ -1,23 +1,29 @@
-#!/usr/bin/env bash
-
-#====================================================
-#	System Request:Debian 9+/Ubuntu 18.04+/Centos 7+
-#	Author:	Soroke
-#	Dscription: tlbb_sf
-#====================================================
+#!/bin/bash
+# author: Soroke
+# 仅支持centos7及以上版本系统，其他系统未测试
+# 已测试腾讯云1H2G1M,运行稳定
 
 #设置环境变量
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/usr/local/sbin:~/bin:$PATH
-export $PATH
+export PATH
 
-#配置文件和安装包
+#全局属性
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 CONFIG_PATH="${DIR}/config/config.ini"
 TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
 GW_PATH="${DIR}/tools/gw.zip"
-DOCKER_COMPOSR="${DIR}/tools/docker-compose"
+
+
+#读取配置获取服务安装路径
+source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
+SERVER_DIR=${iniValue}
+mkdir -p $SERVER_DIR
+
+
+
+startTime=`date +%s`
 
 #######color code########
 RED="31m"
@@ -25,156 +31,64 @@ GREEN="32m"
 YELLOW="33m"
 BLUE="36m"
 FUCHSIA="35m"
-# 字体颜色配置
-Green="\033[32m"
-Red="\033[31m"
-Yellow="\033[33m"
-Blue="\033[36m"
-Font="\033[0m"
-GreenBG="\033[42;37m"
-RedBG="\033[41;37m"
-OK="${Green}[OK]${Font}"
-ERROR="${Red}[ERROR]${Font}"
 
-function colorEcho(){
+colorEcho(){
     COLOR=$1
     echo -e "\033[${COLOR}${@:2}\033[0m"
 }
-function colorEcho_noline(){
+colorEcho_noline(){
     COLOR=$1
     echo -n -e "\033[${COLOR}${@:2}\033[0m"
 }
 
-function print_ok() {
-  echo -e "${OK} ${Blue} $1 ${Font}"
-}
 
-function print_error() {
-  echo -e "${ERROR} ${RedBG} $1 ${Font}"
-}
-
-#检测执行结果
-judge() {
-  if [[ 0 -eq $? ]]; then
-    print_ok "$1 完成"
-    sleep 1
-  else
-    print_error "$1 失败"
-    exit 1
-  fi
-}
-
-#调用readIni脚本读取配置获取服务安装路径
-source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
-SERVER_DIR=${iniValue}
-print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
-mkdir -p $SERVER_DIR
-
-#检测是否为root用户执行
-function is_root() {
-  if [[ 0 == "$UID" ]]; then
-    print_ok "当前用户是 root 用户，开始安装流程"
-  else
-    print_error "当前用户不是 root 用户，请切换到 root 用户后重新执行脚本"
-    exit 1
-  fi
-}
 
 # 初始化校验服务器时间
 function init_clock(){
+    yum -y install ntp
     \cp -a -r /usr/share/zoneinfo/Asia/Shanghai /etc/localtime
     echo 'init system time..'
     ntpdate 0.asia.pool.ntp.org
-    judge "同步服务器时间"
     hwclock -w
 }
 
-
-#检测并添加虚拟内存
-function install_swap() {
-	#获取实际内存大小(大于4G不添加虚拟内存)
-	mem=`free | awk '($1 == "Mem:"){print $2/1048576}'`
-	isBig=`expr $mem \> 4.0`
-	if [[ $isBig -eq 0 ]] && [ ! -f /usr/swap/swapfile ];then
-		print_ok "当前系统内存为`free -hm | awk -F " " 'NR==2{print $2}'`,开始执行虚拟内存添加"
-		mkdir -p /usr/swap && dd if=/dev/zero of=/usr/swap/swapfile bs=100M count=40 && \
-		mkswap /usr/swap/swapfile && \
-		chmod -R 600 /usr/swap/swapfile && swapon /usr/swap/swapfile && \
-		echo "/usr/swap/swapfile swap swap defaults 0 0" >> /etc/fstab
-		print_ok "虚拟内存添加4G，总内存提升到 (`free -hm | awk -F " " 'NR==2{print $2}'` + 4.0G) 成功！"
-	else
-		print_ok "虚拟内存已经提升到 (`free -hm | awk -F " " 'NR==3{print $2}'`)"
-	fi
+# 替换源并安装环境所需组件
+function replace_install_plugins() {
+	yum install -y wget
+    rm -f /var/run/yum.pid
+    mv /etc/yum.repos.d/epel.repo /etc/yum.repos.d/epel.repo.backup
+    mv /etc/yum.repos.d/epel-testing.repo /etc/yum.repos.d/epel-testing.repo.backup
+    wget -O /etc/yum.repos.d/epel.repo http://mirrors.aliyun.com/repo/epel-7.repo
+    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
+    wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+    yum makecache
+    PLUGINS="dos2unix epel-release yum-utils wget jq git vim zip unzip zlib zlib-devel freetype freetype-devel lsof pcre pcre-devel vixie-cron crontabs"
+    yum -y install ${PLUGINS} && yum -y update
 }
 
-#替换debian系统源为阿里源
-function replace_debian_sources() {
-	#备份源
-	mv /etc/apt/sources.list /etc/apt/sources.list.backup
-	cat > /etc/apt/sources.list <<EOF
-# 默认注释了源码镜像以提高 apt update 速度，如有需要可自行取消注释
-deb http://mirrors.aliyun.com/debian/ $1 main non-free contrib
-#deb-src http://mirrors.aliyun.com/debian/ $1 main non-free contrib
-deb http://mirrors.aliyun.com/debian-security $1/updates main
-#deb-src http://mirrors.aliyun.com/debian-security $1/updates main
-deb http://mirrors.aliyun.com/debian/ $1-updates main non-free contrib
-#deb-src http://mirrors.aliyun.com/debian/ $1-updates main non-free contrib
-deb http://mirrors.aliyun.com/debian/ $1-backports main non-free contrib
-#deb-src http://mirrors.aliyun.com/debian/ $1-backports main non-free contrib
-EOF
-	apt update -y
-	apt upgrade -y
-}
-
-#替换ubuntu系统源为阿里源
-function replace_ubuntu_sources() {
-	cat > /etc/apt/sources.list <<EOF
-deb http://mirrors.aliyun.com/ubuntu/ $1 main multiverse restricted universe
-deb http://mirrors.aliyun.com/ubuntu/ $1-backports main multiverse restricted universe
-deb http://mirrors.aliyun.com/ubuntu/ $1-proposed main multiverse restricted universe
-deb http://mirrors.aliyun.com/ubuntu/ $1-security main multiverse restricted universe
-deb http://mirrors.aliyun.com/ubuntu/ $1-updates main multiverse restricted universe
-deb-src http://mirrors.aliyun.com/ubuntu/ $1 main multiverse restricted universe
-deb-src http://mirrors.aliyun.com/ubuntu/ $1-backports main multiverse restricted universe
-deb-src http://mirrors.aliyun.com/ubuntu/ $1-proposed main multiverse restricted universe
-deb-src http://mirrors.aliyun.com/ubuntu/ $1-security main multiverse restricted universe
-deb-src http://mirrors.aliyun.com/ubuntu/ $1-updates main multiverse restricted universe
-EOF
-	apt-get update
-}
-
-#安装docker和docker-compose
+# 配置与安装Docker-ce docker-compose
 function install_docker() {
-	if [[ "$1" == "centos" ]]; then
-		#安装必要的一些系统工具
-		sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-		#添加软件源信息
-		sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-		#更新并安装 Docker-CE
-		sudo yum makecache fast
-		sudo yum -y install docker-ce docker-compose
-		#service docker start
-	elif [[ "$1" == "debian" ]]; then
-		apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common -y
-		# 添加软件源的 GPG 密钥
-		curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg | sudo apt-key add -
-		# 向 source.list 中添加 Docker CE 软件源
-		add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable"
-		apt-get update -y
-		apt-get install docker-ce docker-compose -y
-		
-	elif [[ "$1" == "ubuntu" ]]; then
-		#statements
-		apt-get -y install apt-transport-https ca-certificates curl software-properties-common
-		curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
-		add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
-		apt-get -y update
-		apt-get -y install docker-ce docker-compose
+	#检查docker docker-compose是否安装
+	docker_version=`docker --version`
+	dockerCompose_version=`docker-compose --version`
+	if [[ $docker_version =~ "Docker version" ]] && [[ $dockerCompose_version =~ "docker-compose version" ]];then
+		colorEcho ${GREEN} "docker-ce 和 docker-compose都已安装，不做重复部署"
+	elif [[ $docker_version =~ "Docker version" ]] && [[ ! $dockerCompose_version =~ "docker-compose version" ]];then
+		colorEcho ${GREEN} "docker-ce已安装, docker-compose未安装，执行docker-compose安装"
+		sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+		sudo yum makecache fast && sudo yum -y install docker-compose && sudo systemctl enable docker && sudo systemctl start docker
+	elif [[ ! $docker_version =~ "Docker version" ]] && [[ $dockerCompose_version =~ "docker-compose version" ]];then
+		colorEcho ${GREEN} "docker-compose已安装, docker-ce未安装，执行docker-ce安装"
+		sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+		sudo yum makecache fast && sudo yum -y install docker-ce && sudo systemctl enable docker && sudo systemctl start docker
+	elif [[ ! $docker_version =~ "Docker version" ]] && [[ ! $dockerCompose_version =~ "docker-compose version" ]];then
+		colorEcho ${GREEN} "docker-ce 和 docker-compose都未安装，开始执行安装部署"
+	    sudo yum-config-manager --add-repo https://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+		sudo yum makecache fast && sudo yum -y install docker-ce docker-compose && sudo systemctl enable docker && sudo systemctl start docker
+	else
+		colorEcho ${GREEN} "未知状态，请检查docker的安装情况。。。"
 	fi
-	
-	#cp $DOCKER_COMPOSR /usr/bin/ && chmod +x /usr/bin/docker-compose
-	systemctl start docker
-	#阿里云镜像加速
+    #阿里云镜像加速
 	sudo mkdir -p /etc/docker
 	sudo tee /etc/docker/daemon.json <<-'EOF'
 	{
@@ -183,70 +97,25 @@ function install_docker() {
 	EOF
 	sudo systemctl daemon-reload
 	sudo systemctl restart docker
+	colorEcho ${GREEN} "docker 安装完毕"
 }
 
-#检测系统并执行源替换和docker安装
-function system_check() {
-  source '/etc/os-release'
-
-  if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
-    print_ok "当前系统为 Centos ${VERSION_ID} ${VERSION}"
-    INS="yum install -y"
-
-    #备份源镜像
-    mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
-    #更换为清华源
-    sed -e 's|^mirrorlist=|#mirrorlist=|g' \
-        -e 's|^#baseurl=http://mirror.centos.org|baseurl=https://mirrors.tuna.tsinghua.edu.cn|g' \
-        -i.bak \
-        /etc/yum.repos.d/CentOS-*.repo
-    judge "替换为清华源"
-    yum makecache
-    $INS crontabs
-    
-  elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
-    print_ok "当前系统为 Debian ${VERSION_ID} ${VERSION}"
-    INS="apt install -y"
-    #替换源
-    replace_debian_sources $VERSION_CODENAME
-    judge "替换为阿里源"
-    $INS cron
-  elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
-    print_ok "当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}"
-    INS="apt install -y"
-    #替换源
-    replace_ubuntu_sources $VERSION_CODENAME
-    judge "替换为阿里源"
-    $INS cron
-  else
-    print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
-    exit 1
-  fi
-
-  if [[ $(grep "nogroup" /etc/group) ]]; then
-    cert_group="nogroup"
-  fi
-
-  #安装docker和一些所需工具
-  docker_version=`docker --version`
-  if [[ $docker_version =~ "Docker version" ]]; then
-  	print_ok "docker服务已安装"
-  else
-  	install_docker ${ID}
-  	judge "docker和docker-compose安装"
-  fi
-  
-  $INS dbus wget jq git vim zip unzip lsof ntpdate
-
-  # 关闭各类防火墙
-  systemctl stop firewalld
-  systemctl disable firewalld
-  systemctl stop nftables
-  systemctl disable nftables
-  systemctl stop ufw
-  systemctl disable ufw
+#添加虚拟内存
+function install_swap() {
+	#获取实际内存大小(大于4G不添加虚拟内存)
+	mem=`free | awk '($1 == "Mem:"){print $2/1048576}'`
+	isBig=`expr $mem \> 4.0`
+	if [[ $isBig -eq 0 ]] && [ ! -f /usr/swap/swapfile ];then
+		colorEcho ${GREEN} "当前系统内存为`free -hm | awk -F " " 'NR==2{print $2}'`,开始执行虚拟内存添加"
+		mkdir -p /usr/swap && dd if=/dev/zero of=/usr/swap/swapfile bs=100M count=40 && \
+		mkswap /usr/swap/swapfile && \
+		chmod -R 600 /usr/swap/swapfile && swapon /usr/swap/swapfile && \
+		echo "/usr/swap/swapfile swap swap defaults 0 0" >> /etc/fstab
+		colorEcho ${GREEN} "虚拟内存添加4G，总内存提升到 (`free -hm | awk -F " " 'NR==2{print $2}'` + 4.0G) 成功！"
+	else
+		colorEcho ${GREEN} "虚拟内存已经提升到 (`free -hm | awk -F " " 'NR==3{print $2}'`)"
+	fi
 }
-
 
 #初始化docker-compose环境变量
 function init_env() {
@@ -288,7 +157,6 @@ function init_env() {
 
 }
 
-
 #解压服务包
 function unzip_server() {
 	if [ ! -d "$SERVER_DIR/billing" ];then 
@@ -299,36 +167,36 @@ function unzip_server() {
 	fi
 	#billing
 	if [[ -f "$SERVER_DIR/billing/billing" ]] && [[ -f "$SERVER_DIR/billing/config.json" ]];then
-		print_error "billing服务已存在,不做处理。。。"
+		colorEcho ${GREEN} "billing服务已存在,不做处理。。。"
 	elif [ -f "$BILLING_PATH" ];then
 		unzip $BILLING_PATH -d $SERVER_DIR/billing > /dev/null 2>&1
 		chmod -R a+x $SERVER_DIR/billing/*
-		print_ok "billing服务解压完成。。。"
+		colorEcho ${GREEN} "billing服务解压完成。。。"
 	else
-		print_error ${GREEN} "${BILLING_PATH}文件不存在,请重新下载该项目"
+		colorEcho ${GREEN} "${BILLING_PATH}文件不存在,请重新下载该项目"
 	fi
 	
 	#tlbb
 	if [ -f "/root/tlbb.tar.gz" ]; then
 		rm -rf $SERVER_DIR/server/tlbb && tar zxf /root/tlbb.tar.gz -C $SERVER_DIR/server && chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.tar.gz
-		print_ok "服务端文件【/root/tlbb.tar.gz】已经解压成功！！"
+		colorEcho ${GREEN} "服务端文件【/root/tlbb.tar.gz】已经解压成功！！"
 	elif [ -f "/root/tlbb.zip" ]; then
 		rm -rf $SERVER_DIR/server/tlbb && unzip /root/tlbb.zip -d $SERVER_DIR/server > /dev/null 2>&1 
 		chown -R root:root $SERVER_DIR/server/tlbb && rm -rf /root/tlbb.zip
-		print_ok "服务端文件【/root/tlbb.zip】已经解压成功！！"
+		colorEcho ${GREEN} "服务端文件【/root/tlbb.zip】已经解压成功！！"
 	else
-		print_error "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下面！！"
+		colorEcho ${GREEN} "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下面！！"
 	fi
 	
 	#Portainer-CN 汉化包
 	if [[ -f "${SERVER_DIR}/Portainer-CN/index.html" ]] && [[ -d "${SERVER_DIR}/Portainer-CN/fonts" ]];then
-		print_ok "Portainer-CN 汉化包已存在,不做处理。。。"
+		colorEcho ${GREEN} "Portainer-CN 汉化包已存在,不做处理。。。"
 	elif [ -f "${PORTAINER_CN_PATH}" ]; then
 		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN > /dev/null 2>&1 
 		chown -R root:root $SERVER_DIR/Portainer-CN
-		print_ok "Portainer-CN 汉化包解压完成。。。"
+		colorEcho ${GREEN} "Portainer-CN 汉化包解压完成。。。"
 	else
-		print_error "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
+		colorEcho ${GREEN} "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
 	fi
 	
 	#官网
@@ -496,10 +364,10 @@ function build_image() {
 		docker build -f ${DIR}/docker/webdb/Dockerfile -t ${iniValue}:${image_version} ${DIR}/docker/webdb
 	fi
 
-	print_ok "私服服务和数据库两个个镜像构建完成。。。"
+	
+	
+	colorEcho ${GREEN} "私服服务和数据库两个个镜像构建完成。。。"
 }
-
-
 
 #检查镜像是否为启动状态
 function server_is_start() {
@@ -538,9 +406,9 @@ function start_dockerCompose() {
 	if [ $dc_sc -eq 0 ];then
 		#启动镜像
 		cd ${DIR} && docker-compose up -d 
-		print_ok "容器组已启动。。"
+		colorEcho ${GREEN} "容器组已启动。。"
 	else
-		print_ok "容器组已经启动。。"
+		colorEcho ${GREEN} "容器组已经启动。。"
 	fi
 	
 }
@@ -551,11 +419,11 @@ function stop_dockerCompose() {
 	dockerCompose_startCount
 	dc_sc=$?
 	if [ $dc_sc -eq 0 ];then
-		print_ok "容器组已经关闭。。"
+		colorEcho ${GREEN} "容器组已经关闭。。"
 	else
 		#关闭镜像
 		cd ${DIR} && docker-compose down
-		print_ok "容器组已关闭。。"
+		colorEcho ${GREEN} "容器组已关闭。。"
 	fi
 }
 
@@ -640,9 +508,9 @@ function look_config() {
 	echo -e "登陆器配置器下载地址: :\e[44m http://${IP}:$tomcat_port/dlpzq.exe \e[0m "
 	echo -e "启用网站请把域名解析到IP:${IP}上，然后把网站文件放到\e[44m ${SERVER_DIR}/tomcat/ \e[0m目录里面即可。"
 	echo -e "====================================="
-	print_ok "服务状态"
+	colorEcho ${GREEN} "服务状态"
 	echo "-------------------------------------"
-	print_ok "容器组状态: :"
+	colorEcho_noline ${GREEN} "容器组状态: :"
 	dockerCompose_startCount
 	dc_st=$?
 	if [ $dc_st -ge 4 ];then
@@ -651,7 +519,7 @@ function look_config() {
 		echo -e "\e[45m 已关闭 \e[0m "
 	fi
 	
-	print_ok "私服服务状态: :"
+	colorEcho_noline ${GREEN} "私服服务状态: :"
 	server_is_start
 	server_st=$?
 	if [ $server_st -eq 1 ];then
@@ -710,10 +578,10 @@ case $chose in
 		;;
 	2)
 		startTime=`date +%s`
-		is_root
 		init_clock
+		replace_install_plugins
+		install_docker
 		install_swap
-		system_check
 		build_image
 		init_env
 		start_dockerCompose
