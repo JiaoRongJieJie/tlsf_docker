@@ -9,13 +9,9 @@
 ### 
 # 使用说明
 #### 请使用root账号登录系统
-### 1、获取所需代码
+### 1、初始化工具
 ```shell
-git clone https://github.com/Soroke/tlsf_docker.git .tlsf && bash .tlsf/.init && source ~/.bashrc
-```
-#### 或者
-```shell
-git clone https://gitee.com/soroke/tlsf_docker.git .tlsf && bash .tlsf/.init && source ~/.bashrc
+source <(curl -sL https://gitee.com/soroke/tlsf_docker/raw/master/.init)
 ```
 ### 2、安装基础环境
 ##### 执行下面的命令

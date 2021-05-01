@@ -1,2 +1,15 @@
+source '/etc/os-release'
+if [[ "${ID}" == "centos" && ${VERSION_ID} -ge 7 ]]; then
+  yum install -y git
+elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
+  apt install -y git
+elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
+  apt install -y git
+else
+  print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
+  exit 1
+fi
+git clone https://gitee.com/soroke/tlsf_docker.git .tlsf
 DIR=$(cd -P -- "$(dirname -- "$0")" && pwd -P)
 echo "alias tlbb=\"bash ${DIR}/run.sh\"" >> ~/.bashrc
+tlbb
