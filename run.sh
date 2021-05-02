@@ -601,6 +601,7 @@ function start_tlbb_server(){
 	if [ $st -eq 0 ];then
 		cd ${DIR} && docker-compose start server
 	fi
+	cd ${DIR} && docker-compose exec -d server chmod -R +x /home/tlbb
 	#启动billing认证
 	cd ${DIR} && docker-compose exec -d server /opt/billing up
 	#启动私服
