@@ -113,10 +113,10 @@ function replace_centos_sources() {
 	#备份源
 	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
 	if [[ $1 -eq 8 ]]; then
-		wget -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
 		sed -i 's/$releasever/8/g' /etc/yum.repos.d/CentOS-Base.repo
 	elif [[ $1 -eq 7 ]]; then
-		wget -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+		curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
 	else
 		print_error "系统不支持，centos最高支持centos7"
 	fi
@@ -494,6 +494,8 @@ function build_image() {
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image IMAGE_VERSION >/dev/null
 	image_version=${iniValue}
 
+	#修复Ubuntu权限问题
+	chmod 777 ${DIR}/docker/*
 	#判断镜像是否存在如果不存在，默认为首次生成，打印生成日志
 	tlbb_server_count=`docker image ls tlbb_server |wc -l`
 	if [ $tlbb_server_count -ge 2 ];then
