@@ -113,10 +113,10 @@ function replace_centos_sources() {
 	#备份源
 	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
 	if [[ $1 -eq 8 ]]; then
-		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+		curl -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
 		sed -i 's/$releasever/8/g' /etc/yum.repos.d/CentOS-Base.repo
 	elif [[ $1 -eq 7 ]]; then
-		curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+		curl -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
 	else
 		print_error "系统不支持，centos最高支持centos7"
 	fi
@@ -191,15 +191,17 @@ function install_docker() {
 	
 	cp $DOCKER_COMPOSR /usr/bin/ && chmod +x /usr/bin/docker-compose
 	systemctl start docker
-	#阿里云镜像加速
-	sudo mkdir -p /etc/docker
-	sudo tee /etc/docker/daemon.json <<-'EOF'
-	{
-	  "registry-mirrors": ["https://f0tv1cst.mirror.aliyuncs.com"]
-	}
-	EOF
-	sudo systemctl daemon-reload
-	sudo systemctl restart docker
+	if [ $2 != "WAIWANG" ];then
+		#阿里云镜像加速
+		sudo mkdir -p /etc/docker
+		sudo tee /etc/docker/daemon.json <<-'EOF'
+		{
+		  "registry-mirrors": ["https://f0tv1cst.mirror.aliyuncs.com"]
+		}
+		EOF
+		sudo systemctl daemon-reload
+		sudo systemctl restart docker
+	fi
 }
 
 #检测系统并执行源替换和docker安装
@@ -210,23 +212,29 @@ function system_check() {
     print_ok "当前系统为 Centos ${VERSION_ID} ${VERSION}"
     INS="yum install -y"
     #替换源
-    replace_centos_sources ${VERSION_ID}
-    judge "替换为阿里源"
+	if [ $1 != "WAIWANG" ];then
+		replace_centos_sources ${VERSION_ID}
+		judge "替换为阿里源"
+	fi
     $INS crontabs ntp
     
   elif [[ "${ID}" == "debian" && ${VERSION_ID} -ge 9 ]]; then
     print_ok "当前系统为 Debian ${VERSION_ID} ${VERSION}"
     INS="apt install -y"
     #替换源
-    replace_debian_sources $VERSION_CODENAME
-    judge "替换为阿里源"
+	if [ $1 != "WAIWANG" ];then
+		replace_debian_sources $VERSION_CODENAME
+		judge "替换为阿里源"
+	fi
     $INS cron ntpdate
   elif [[ "${ID}" == "ubuntu" && $(echo "${VERSION_ID}" | cut -d '.' -f1) -ge 18 ]]; then
     print_ok "当前系统为 Ubuntu ${VERSION_ID} ${UBUNTU_CODENAME}"
     INS="apt install -y"
     #替换源
-    replace_ubuntu_sources $VERSION_CODENAME
-    judge "替换为阿里源"
+	if [ $1 != "WAIWANG" ];then
+		replace_ubuntu_sources $VERSION_CODENAME
+		judge "替换为阿里源"
+	fi
     $INS cron ntpdate
   else
     print_error "当前系统为 ${ID} ${VERSION_ID} 不在支持的系统列表内"
@@ -238,7 +246,7 @@ function system_check() {
   fi
 
   #安装docker和一些所需工具
-  install_docker ${ID}
+  install_docker ${ID} $1
   judge "docker和docker-compose安装"
   
   $INS dbus wget jq git vim zip unzip lsof
@@ -493,9 +501,8 @@ function build_image() {
 	#获取镜像的版本号
 	source ${DIR}/tools/readIni.sh $CONFIG_PATH docker_image IMAGE_VERSION >/dev/null
 	image_version=${iniValue}
-
 	#修复Ubuntu权限问题
-	chmod 777 ${DIR}/docker/*
+	chmod 777 ${DIR}/docker/*					  
 	#判断镜像是否存在如果不存在，默认为首次生成，打印生成日志
 	tlbb_server_count=`docker image ls tlbb_server |wc -l`
 	if [ $tlbb_server_count -ge 2 ];then
@@ -737,7 +744,16 @@ case $chose in
 		startTime=`date +%s`
 		is_root
 		install_swap
-		system_check
+		colorEcho_noline ${BLUE} "请确认网络运行环境，默认0国内网络(0=国内网络,1=国外网络):"
+		read IS_WAIWANG_STATUS
+		if [ -z "${IS_WAIWANG_STATUS}" ];then
+			IS_WAIWANG_STATUS=0
+		fi
+		if [ $IS_WAIWANG_STATUS -eq 1 ];then
+			system_check "WAIWANG"
+		else
+			system_check "NEIWANG"
+		fi
 		init_clock
 		build_image
 		init_env
