@@ -37,12 +37,23 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - ${PORTAINER_CN}:/public
     restart: always
-  # 前端页面(官网)
-  tomcat:
-    image: tomcat:7
-    container_name: tomcat
+  # 注册接口
+  jdk:
+    image: openjdk:8
+    container_name: jdk
     volumes:
-      - "${SERVER_DIR}/tomcat:/usr/local/tomcat/webapps/ROOT"
+      - "${SERVER_DIR}/reg:/tmp"
     ports:
-      - "${TOMCAT_PORT}:8080"
+      - "12345:8888"
+    working_dir: /tmp
+    command: java -jar TLBBreg-0.0.1-SNAPSHOT.jar --server.port=8888 --spring.profiles.active=conf.properties
     restart: always
+  # 前端页面(官网)
+  #tomcat:
+  #  image: tomcat:7
+  #  container_name: tomcat
+  #  volumes:
+  #   - "${SERVER_DIR}/tomcat:/usr/local/tomcat/webapps/ROOT"
+  #  ports:
+  #    - "${TOMCAT_PORT}:8080"
+  #  restart: always

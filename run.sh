@@ -16,6 +16,7 @@ CONFIG_PATH="${DIR}/config/config.ini"
 TLBB_CONFIG_PATH="${DIR}/config/tlbb"
 BILLING_PATH="${DIR}/tools/billing_Release_v1.2.2.zip"
 PORTAINER_CN_PATH="${DIR}/tools/Portainer-CN.zip"
+REG_PATH="${DIR}/tools/regUser.zip"
 GW_PATH="${DIR}/tools/gw.zip"
 GG_PATH="${DIR}/tools/gg.zip"
 DOCKER_COMPOSR="${DIR}/tools/docker-compose"
@@ -65,11 +66,36 @@ judge() {
   fi
 }
 
+function unzip_new() {
+	#Portainer-CN 汉化包
+	if [[ -f "${SERVER_DIR}/Portainer-CN/index.html" ]] && [[ -d "${SERVER_DIR}/Portainer-CN/fonts" ]];then
+		print_ok "Portainer-CN 汉化包已存在,不做处理。。。"
+	elif [ -f "${PORTAINER_CN_PATH}" ]; then
+		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN > /dev/null 2>&1 
+		chown -R root:root $SERVER_DIR/Portainer-CN
+		print_ok "Portainer-CN 汉化包解压完成。。。"
+	else
+		print_error "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
+	fi
+	
+	#提供注册接口
+	if [[ -f "${SERVER_DIR}/reg/TLBBreg-0.0.1-SNAPSHOT.jar" ]] && [[ -d "${SERVER_DIR}/reg/conf.properties" ]];then
+		print_ok "注册接口文件已存在,不做处理。。。"
+	elif [ -f "${REG_PATH}" ]; then
+		rm -rf $SERVER_DIR/reg && unzip $REG_PATH -d $SERVER_DIR/reg > /dev/null 2>&1 
+		chown -R root:root $SERVER_DIR/reg
+		print_ok "注册接口文件解压完成。。。"
+	else
+		print_error "${REG_PATH}注册接口文件不存在,请重新下载该项目"
+	fi
+}
+
 #调用readIni脚本读取配置获取服务安装路径
 source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
 SERVER_DIR=${iniValue}
 print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
 mkdir -p $SERVER_DIR
+
 
 #检测是否为root用户执行
 function is_root() {
@@ -79,6 +105,7 @@ function is_root() {
     print_error "当前用户不是 root 用户，请切换到 root 用户后重新执行脚本"
     exit 1
   fi
+  unzip_new
 }
 
 # 初始化校验服务器时间
@@ -333,27 +360,18 @@ function unzip_server() {
 		print_error "服务端文件不存在，或者位置上传错误，请上传至 [/root] 目录下面！！"
 	fi
 	
-	#Portainer-CN 汉化包
-	if [[ -f "${SERVER_DIR}/Portainer-CN/index.html" ]] && [[ -d "${SERVER_DIR}/Portainer-CN/fonts" ]];then
-		print_ok "Portainer-CN 汉化包已存在,不做处理。。。"
-	elif [ -f "${PORTAINER_CN_PATH}" ]; then
-		rm -rf $SERVER_DIR/Portainer-CN && unzip $PORTAINER_CN_PATH -d $SERVER_DIR/Portainer-CN > /dev/null 2>&1 
-		chown -R root:root $SERVER_DIR/Portainer-CN
-		print_ok "Portainer-CN 汉化包解压完成。。。"
-	else
-		print_error "${PORTAINER_CN_PATH}汉化包文件不存在,请重新下载该项目"
-	fi
+
 	
 	#公告
-	if [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
-		print_ok "公告已存在,不做处理。。。"
-	elif [ -f "${GG_PATH}" ]; then
-		rm -rf $SERVER_DIR/tomcat/gg && unzip -d $SERVER_DIR/tomcat/ $GG_PATH > /dev/null 2>&1 
-		chown -R root:root $SERVER_DIR/tomcat
-		print_ok "公告解压完成。。。"
-	else
-		print_error "${GG_PATH}公告文件不存在,请重新下载该项目"
-	fi
+	#if [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
+	#	print_ok "公告已存在,不做处理。。。"
+	#elif [ -f "${GG_PATH}" ]; then
+	#	rm -rf $SERVER_DIR/tomcat/gg && unzip -d $SERVER_DIR/tomcat/ $GG_PATH > /dev/null 2>&1 
+	#	chown -R root:root $SERVER_DIR/tomcat
+	#	print_ok "公告解压完成。。。"
+	#else
+	#	print_error "${GG_PATH}公告文件不存在,请重新下载该项目"
+	#fi
 	
 	#官网
 	#if [[ -f "${SERVER_DIR}/tomcat/index.html" ]] && [[ -d "${SERVER_DIR}/tomcat/gg" ]];then
@@ -468,7 +486,9 @@ function modf_config() {
 	#替换Server0的角色转发IP为服务器的真实IP
 	sed -i "s/IP0=127.123.321.123/IP0=${IP}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
 	
-
+	#替换注册服务的数据库配置
+	sed -i "s/127.0.0.1/${IP}/g" $SERVER_DIR/reg/conf.properties
+	sed -i "s/mimamimamima/${tlbbdb_password}/g" $SERVER_DIR/reg/conf.properties
 	
 	#复制修改完成的文件到TLBB服务端
 	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
