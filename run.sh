@@ -111,7 +111,7 @@ function is_root() {
     print_error "当前用户不是 root 用户，请切换到 root 用户后重新执行脚本"
     exit 1
   fi
-  unzip_new
+  
 }
 
 # 初始化校验服务器时间
@@ -146,10 +146,10 @@ function replace_centos_sources() {
 	#备份源
 	mv /etc/yum.repos.d/CentOS-Base.repo /etc/yum.repos.d/CentOS-Base.repo.backup
 	if [[ $1 -eq 8 ]]; then
-		curl -O /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
+		curl -o /etc/yum.repos.d/CentOS-Base.repo http://mirrors.aliyun.com/repo/Centos-8.repo
 		sed -i 's/$releasever/8/g' /etc/yum.repos.d/CentOS-Base.repo
 	elif [[ $1 -eq 7 ]]; then
-		curl -O /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
+		curl -o /etc/yum.repos.d/CentOS-Base.repo https://mirrors.aliyun.com/repo/Centos-7.repo
 	else
 		print_error "系统不支持，centos最高支持centos7"
 	fi
@@ -283,7 +283,7 @@ function system_check() {
   judge "docker和docker-compose安装"
   
   $INS dbus wget jq git vim zip unzip lsof
-
+  unzip_new
   # 关闭各类防火墙
   systemctl stop firewalld
   systemctl disable firewalld
