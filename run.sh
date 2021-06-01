@@ -72,8 +72,28 @@ SERVER_DIR=${iniValue}
 print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
 mkdir -p $SERVER_DIR
 
+#替换注册服务的配置
+function modf_reg_config() {
+
+	#读取数据库配置
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PASSWORD >/dev/null
+	tlbbdb_password=${iniValue}
+	#source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql WEB_MYSQL_PASSWORD >/dev/null
+	#webdb_password=${iniValue}
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH mysql TLBB_MYSQL_PORT >/dev/null
+	tlbbdb_port=${iniValue}
+	#获取本机真实IP
+	IP=`curl -s https://httpbin.org/ip | jq '.origin'`
+	IP=${IP//\"/}
+	
+	#替换注册服务的数据库配置
+	sed -i "s/127.0.0.1/${IP}/g" $SERVER_DIR/reg/conf.properties
+	sed -i "s/3306/${tlbbdb_port}/g" $SERVER_DIR/reg/conf.properties
+	sed -i "s/mimamimamima/${tlbbdb_password}/g" $SERVER_DIR/reg/conf.properties
+}
+
+#解压注册服务和docker管理系统的汉化包
 function unzip_new() {
-	yum -y install unzip
 	if [ ! -d "$SERVER_DIR/Portainer-CN" ];then 
 		mkdir -p $SERVER_DIR/Portainer-CN
 	fi
@@ -101,7 +121,9 @@ function unzip_new() {
 	else
 		print_error "${REG_PATH}注册接口文件不存在,请重新下载该项目"
 	fi
+	modf_reg_config
 }
+
 
 #检测是否为root用户执行
 function is_root() {
@@ -491,10 +513,6 @@ function modf_config() {
 	IP=${IP//\"/}
 	#替换Server0的角色转发IP为服务器的真实IP
 	sed -i "s/IP0=127.123.321.123/IP0=${IP}/g" ${DIR}/config/tlbb_config/ServerInfo.ini
-	
-	#替换注册服务的数据库配置
-	sed -i "s/127.0.0.1/${IP}/g" $SERVER_DIR/reg/conf.properties
-	sed -i "s/mimamimamima/${tlbbdb_password}/g" $SERVER_DIR/reg/conf.properties
 	
 	#复制修改完成的文件到TLBB服务端
 	\cp -rf ${DIR}/config/tlbb_config/*.ini $SERVER_DIR/server/tlbb/Server/Config/
