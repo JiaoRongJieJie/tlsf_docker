@@ -73,6 +73,7 @@ print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
 mkdir -p $SERVER_DIR
 
 function unzip_new() {
+	yum -y install unzip
 	if [ ! -d "$SERVER_DIR/Portainer-CN" ];then 
 		mkdir -p $SERVER_DIR/Portainer-CN
 	fi
