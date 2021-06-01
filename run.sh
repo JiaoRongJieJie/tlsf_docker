@@ -66,7 +66,14 @@ judge() {
   fi
 }
 
+
+
 function unzip_new() {
+	#调用readIni脚本读取配置获取服务安装路径
+	source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
+	SERVER_DIR=${iniValue}
+	print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
+	mkdir -p $SERVER_DIR
 	#Portainer-CN 汉化包
 	if [[ -f "${SERVER_DIR}/Portainer-CN/index.html" ]] && [[ -d "${SERVER_DIR}/Portainer-CN/fonts" ]];then
 		print_ok "Portainer-CN 汉化包已存在,不做处理。。。"
@@ -89,13 +96,6 @@ function unzip_new() {
 		print_error "${REG_PATH}注册接口文件不存在,请重新下载该项目"
 	fi
 }
-
-#调用readIni脚本读取配置获取服务安装路径
-source ${DIR}/tools/readIni.sh $CONFIG_PATH System LOCAL_DIR
-SERVER_DIR=${iniValue}
-print_ok "开始创建系统文件夹位置为：" + $SERVER_DIR
-mkdir -p $SERVER_DIR
-
 
 #检测是否为root用户执行
 function is_root() {
