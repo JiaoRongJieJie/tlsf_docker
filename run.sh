@@ -87,9 +87,9 @@ function modf_reg_config() {
 	IP=${IP//\"/}
 	
 	#替换注册服务的数据库配置
-	sed -i "s/127.0.0.1/${IP}/g" $SERVER_DIR/reg/conf.properties
-	sed -i "s/3306/${tlbbdb_port}/g" $SERVER_DIR/reg/conf.properties
-	sed -i "s/mimamimamima/${tlbbdb_password}/g" $SERVER_DIR/reg/conf.properties
+	sed -i "s/127.0.0.1/${IP}/g" $SERVER_DIR/reg/application.properties
+	sed -i "s/3306/${tlbbdb_port}/g" $SERVER_DIR/reg/application.properties
+	sed -i "s/mimamimamima/${tlbbdb_password}/g" $SERVER_DIR/reg/application.properties
 }
 
 #解压注册服务和docker管理系统的汉化包
@@ -112,7 +112,7 @@ function unzip_new() {
 	fi
 	
 	#提供注册接口
-	if [[ -f "${SERVER_DIR}/reg/TLBBreg-0.0.1-SNAPSHOT.jar" ]] && [[ -d "${SERVER_DIR}/reg/conf.properties" ]];then
+	if [[ -f "${SERVER_DIR}/reg/TLBBreg-0.0.1-SNAPSHOT.jar" ]] && [[ -d "${SERVER_DIR}/reg/application.properties" ]];then
 		print_ok "注册接口文件已存在,不做处理。。。"
 	elif [ -f "${REG_PATH}" ]; then
 		rm -rf $SERVER_DIR/reg && unzip $REG_PATH -d $SERVER_DIR/reg > /dev/null 2>&1 
