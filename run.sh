@@ -161,6 +161,24 @@ function install_swap() {
 	else
 		print_ok "虚拟内存已经提升到 (`free -hm | awk -F " " 'NR==3{print $2}'`)"
 	fi
+	
+	#检测是否有虚拟内存使用方法设置
+	have_swap_set=0
+	while read line; do
+		if [[ $line =~ "vm.swappiness" ]];then
+				have_swap_set=1
+				sed -i "s/$line/vm.swappiness = 80/g" /etc/sysctl.conf
+		fi
+		#echo $line
+	done < /etc/sysctl.conf
+
+	if [ $have_swap_set -eq 0 ];then
+		echo "vm.swappiness = 80" >> /etc/sysctl.conf
+	fi
+	
+	#设置完成后生效设置
+	sysctl -p
+	print_ok "设置积极使用虚拟内存完成,当内存使用超过20%之后开始使用虚拟内存"
 }
 
 #替换centos系统源为阿里源
