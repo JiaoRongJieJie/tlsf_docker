@@ -236,30 +236,62 @@ EOF
 #安装docker和docker-compose
 function install_docker() {
 	if [[ "$1" == "centos" ]]; then
-		#安装必要的一些系统工具
-		sudo yum install -y yum-utils device-mapper-persistent-data lvm2
-		#添加软件源信息
-		sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
-		#更新并安装 Docker-CE
-		sudo yum makecache
-		sudo yum -y install docker-ce
+		if [ $2 != "WAIWANG" ];then
+			#安装必要的一些系统工具
+			sudo yum install -y yum-utils device-mapper-persistent-data lvm2
+			#添加软件源信息
+			sudo yum-config-manager --add-repo http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+			#更新并安装 Docker-CE
+			sudo yum makecache
+			sudo yum -y install docker-ce
+		else
+			sudo yum install -y yum-utils wget
+			sudo yum-config-manager --add-repo https://download.docker.com/linux/centos/docker-ce.repo
+			yum-config-manager --enable docker-ce-nightly
+			sudo yum-config-manager --enable docker-ce-test
+			sudo yum-config-manager --disable docker-ce-nightly
+			sudo yum install docker-ce docker-ce-cli containerd.io -y
+			systemctl start docker
+			systemctl enable docker
+		fi
 		#service docker start
 	elif [[ "$1" == "debian" ]]; then
-		apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common -y
-		# 添加软件源的 GPG 密钥
-		curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg | sudo apt-key add -
-		# 向 source.list 中添加 Docker CE 软件源
-		add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable"
-		apt-get update -y
-		apt-get install docker-ce -y
-		
+		if [ $2 != "WAIWANG" ];then
+			apt install apt-transport-https ca-certificates curl gnupg2 lsb-release software-properties-common -y
+			# 添加软件源的 GPG 密钥
+			curl -fsSL https://mirrors.aliyun.com/docker-ce/linux/debian/gpg | sudo apt-key add -
+			# 向 source.list 中添加 Docker CE 软件源
+			add-apt-repository "deb [arch=amd64] https://mirrors.aliyun.com/docker-ce/linux/debian $(lsb_release -cs) stable"
+			apt-get update -y
+			apt-get install docker-ce -y
+		else
+			sudo apt-get update
+			sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release wget -y
+			curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+			echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+			sudo apt-get update
+			sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+			systemctl start docker
+			systemctl enable docker
+		fi
 	elif [[ "$1" == "ubuntu" ]]; then
-		#statements
-		apt-get -y install apt-transport-https ca-certificates curl software-properties-common
-		curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
-		add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
-		apt-get -y update
-		apt-get -y install docker-ce
+		if [ $2 != "WAIWANG" ];then
+			#statements
+			apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+			curl -fsSL http://mirrors.aliyun.com/docker-ce/linux/ubuntu/gpg | sudo apt-key add -
+			add-apt-repository "deb [arch=amd64] http://mirrors.aliyun.com/docker-ce/linux/ubuntu $(lsb_release -cs) stable"
+			apt-get -y update
+			apt-get -y install docker-ce
+		else
+			sudo apt-get update
+			sudo apt-get install apt-transport-https ca-certificates curl gnupg lsb-release wget -y
+			curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+			echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null	
+			sudo apt-get update
+			sudo apt-get install docker-ce docker-ce-cli containerd.io -y
+			systemctl start docker
+			systemctl enable docker
+		fi
 	fi
 	
 	cp $DOCKER_COMPOSR /usr/bin/ && chmod +x /usr/bin/docker-compose
