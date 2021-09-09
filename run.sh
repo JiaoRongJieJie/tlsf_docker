@@ -818,9 +818,10 @@ colorEcho ${GREEN} "#(3)启动私服(步骤2完成后)                          
 colorEcho ${GREEN} "#(4)关闭私服                                                  #"
 colorEcho ${GREEN} "#(5)重启私服                                                  #"
 colorEcho ${GREEN} "#(6)我要换端                                                  #"
-colorEcho ${GREEN} "#(7)修改配置/重新生成                                         #"
-colorEcho ${GREEN} "#(8)删除服务且删除项目                                        #"
-colorEcho ${GREEN} "#(9)查看配置/服务状态                                         #"
+colorEcho ${GREEN} "#(7)一键删档                                                  #"
+colorEcho ${GREEN} "#(8)修改配置/重新生成                                         #"
+colorEcho ${GREEN} "#(9)删除服务且删除项目                                        #"
+colorEcho ${GREEN} "#(10)查看配置/服务状态                                         #"
 colorEcho ${GREEN} "#(0)退出脚本                                                  #"
 colorEcho ${GREEN} "######################Powered by Soroke########################"
 colorEcho ${GREEN} "###############################################################"
@@ -905,6 +906,30 @@ case $chose in
 		fi
 		;;
 	7)
+		colorEcho_noline ${BLUE} "删档会清空当前数据库恢复初始状态，您确认要继续吗？(0=确认执行,1=返回主菜单):"
+		read init_database
+		case $init_database in
+			0)
+				if [ ! -f ${DIR}/.env ];then
+					init_env
+				fi
+				stop_dockerCompose
+				rm -rf ${SERVER_DIR}/tlbbdb/mysql
+				start_dockerCompose
+				sleep 10
+				stop_tlbb_server
+				start_tlbb_server
+				colorEcho ${BLUE} "数据库初始化+私服服务重启正在执行中，大约需要需要3-10分钟。。。."
+				;;
+			1)
+				clear && sh ${DIR}/run.sh
+				;;
+			*)
+				colorEcho ${FUCHSIA} "未知选项" && exit -1
+				;;
+		esac
+		;;
+	8)
 		colorEcho_noline ${BLUE} "当前操作会删除所有正在运行的服务并重新生成，确认要继续吗？(0=确认执行,1=返回主菜单):"
 		read is_jixu
 		case $is_jixu in
@@ -930,7 +955,7 @@ case $chose in
 				;;
 		esac
 		;;
-	8)
+	9)
 		#环境不存在，先初始化环境
 		if [ ! -f ${DIR}/.env ];then
 			init_env
@@ -938,7 +963,7 @@ case $chose in
 		stop_dockerCompose
 		rm -rf ${SERVER_DIR}
 		;;
-	9)
+	10)
 		look_config
 		;;
 	*)
